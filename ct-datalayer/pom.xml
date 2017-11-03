@@ -9,13 +9,18 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>ct-dao</artifactId>
+    <artifactId>ct-datalayer</artifactId>
     <version>${parent.version}</version>
 
     <dependencies>
         <dependency>
             <groupId>com.fede.app</groupId>
             <artifactId>ct-common</artifactId>
+            <version>${parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fede.app</groupId>
+            <artifactId>ct-dao</artifactId>
             <version>${parent.version}</version>
         </dependency>
     </dependencies>

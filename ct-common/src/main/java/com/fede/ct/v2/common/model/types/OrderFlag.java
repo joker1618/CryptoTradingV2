@@ -1,4 +1,4 @@
-package model.types;
+package com.fede.ct.v2.common.model.types;
 
 import java.util.Arrays;
 

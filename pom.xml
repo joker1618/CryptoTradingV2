@@ -11,6 +11,8 @@
     <modules>
         <module>ct-dao</module>
         <module>ct-common</module>
+        <module>ct-datalayer</module>
+        <module>ct-kraken</module>
     </modules>
 
     <properties>
@@ -43,7 +45,6 @@
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.44</version>
         </dependency>
-
 
         <!-- TEST -->
         <dependency>

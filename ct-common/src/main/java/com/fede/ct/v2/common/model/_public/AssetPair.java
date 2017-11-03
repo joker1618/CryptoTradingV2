@@ -1,5 +1,6 @@
-package model._public;
+package com.fede.ct.v2.common.model._public;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -199,9 +200,9 @@ public class AssetPair {
 
 	public static class FeeSchedule {
 		private Integer volume;
-		private Double percentFee;
+		private BigDecimal percentFee;
 
-		public FeeSchedule(Integer volume, Double percentFee) {
+		public FeeSchedule(Integer volume, BigDecimal percentFee) {
 			this.volume = volume;
 			this.percentFee = percentFee;
 		}
@@ -212,10 +213,10 @@ public class AssetPair {
 		public void setVolume(Integer volume) {
 			this.volume = volume;
 		} 
-		public Double getPercentFee() {
+		public BigDecimal getPercentFee() {
 			return percentFee;
 		} 
-		public void setPercentFee(Double percentFee) {
+		public void setPercentFee(BigDecimal percentFee) {
 			this.percentFee = percentFee;
 		}
 

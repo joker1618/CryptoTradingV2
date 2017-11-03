@@ -1,4 +1,4 @@
-package model._public;
+package com.fede.ct.v2.common.model._public;
 
 
 /**

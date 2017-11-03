@@ -1,7 +1,9 @@
-package model._private;
+package com.fede.ct.v2.common.model._private;
 
+import com.fede.ct.v2.common.model.types.*;
 import model.types.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -34,19 +36,19 @@ public class OrderInfo {
 	//	descr = order description info
 	private OrderDescr descr;
 	//	vol = volume of order (base currency unless viqc set in oflags)
-	private Double volume;
+	private BigDecimal volume;
 	//	vol_exec = volume executed (base currency unless viqc set in oflags)
-	private Double volumeExecuted;
+	private BigDecimal volumeExecuted;
 	//	cost = total cost (quote currency unless unless viqc set in oflags)
-	private Double cost;
+	private BigDecimal cost;
 	//	fee = total fee (quote currency)
-	private Double fee;
+	private BigDecimal fee;
 	//	price = average price (quote currency unless viqc set in oflags)
-	private Double averagePrice;
+	private BigDecimal averagePrice;
 	//	stopprice = stop price (quote currency, for trailing stops)
-	private Double stopPrice;
+	private BigDecimal stopPrice;
 	//	limitprice = triggered limit price (quote currency, when limit based order type triggered)
-	private Double limitPrice;
+	private BigDecimal limitPrice;
 	//	misc = comma delimited list of miscellaneous info
 //		stopped = triggered by stop price
 //		touched = triggered by touch price
@@ -183,46 +185,46 @@ public class OrderInfo {
 	public void setDescr(OrderDescr descr) {
 		this.descr = descr;
 	}
-	public Double getVolume() {
+	public BigDecimal getVolume() {
 		return volume;
 	}
-	public void setVolume(Double volume) {
+	public void setVolume(BigDecimal volume) {
 		this.volume = volume;
 	}
-	public Double getVolumeExecuted() {
+	public BigDecimal getVolumeExecuted() {
 		return volumeExecuted;
 	}
-	public void setVolumeExecuted(Double volumeExecuted) {
+	public void setVolumeExecuted(BigDecimal volumeExecuted) {
 		this.volumeExecuted = volumeExecuted;
 	}
-	public Double getCost() {
+	public BigDecimal getCost() {
 		return cost;
 	}
-	public void setCost(Double cost) {
+	public void setCost(BigDecimal cost) {
 		this.cost = cost;
 	}
-	public Double getFee() {
+	public BigDecimal getFee() {
 		return fee;
 	}
-	public void setFee(Double fee) {
+	public void setFee(BigDecimal fee) {
 		this.fee = fee;
 	}
-	public Double getAveragePrice() {
+	public BigDecimal getAveragePrice() {
 		return averagePrice;
 	}
-	public void setAveragePrice(Double averagePrice) {
+	public void setAveragePrice(BigDecimal averagePrice) {
 		this.averagePrice = averagePrice;
 	}
-	public Double getStopPrice() {
+	public BigDecimal getStopPrice() {
 		return stopPrice;
 	}
-	public void setStopPrice(Double stopPrice) {
+	public void setStopPrice(BigDecimal stopPrice) {
 		this.stopPrice = stopPrice;
 	}
-	public Double getLimitPrice() {
+	public BigDecimal getLimitPrice() {
 		return limitPrice;
 	}
-	public void setLimitPrice(Double limitPrice) {
+	public void setLimitPrice(BigDecimal limitPrice) {
 		this.limitPrice = limitPrice;
 	}
 	public List<OrderMisc> getMisc() {
@@ -258,9 +260,9 @@ public class OrderInfo {
 		// ordertype = order type (See Add standard order)
 		private OrderType orderType;
 		// price = primary price
-		private Double primaryPrime;
+		private BigDecimal primaryPrice;
 		// price2 = secondary price
-		private Double secondaryPrice;
+		private BigDecimal secondaryPrice;
 		// leverage = amount of leverage
 		private Integer leverage;
 		// order = order description
@@ -278,7 +280,7 @@ public class OrderInfo {
 			if (pairName != null ? !pairName.equals(that.pairName) : that.pairName != null) return false;
 			if (orderAction != that.orderAction) return false;
 			if (orderType != that.orderType) return false;
-			if (primaryPrime != null ? !primaryPrime.equals(that.primaryPrime) : that.primaryPrime != null)
+			if (primaryPrice != null ? !primaryPrice.equals(that.primaryPrice) : that.primaryPrice != null)
 				return false;
 			if (secondaryPrice != null ? !secondaryPrice.equals(that.secondaryPrice) : that.secondaryPrice != null)
 				return false;
@@ -293,61 +295,12 @@ public class OrderInfo {
 			int result = pairName != null ? pairName.hashCode() : 0;
 			result = 31 * result + (orderAction != null ? orderAction.hashCode() : 0);
 			result = 31 * result + (orderType != null ? orderType.hashCode() : 0);
-			result = 31 * result + (primaryPrime != null ? primaryPrime.hashCode() : 0);
+			result = 31 * result + (primaryPrice != null ? primaryPrice.hashCode() : 0);
 			result = 31 * result + (secondaryPrice != null ? secondaryPrice.hashCode() : 0);
 			result = 31 * result + (leverage != null ? leverage.hashCode() : 0);
 			result = 31 * result + (orderDescription != null ? orderDescription.hashCode() : 0);
 			result = 31 * result + (closeDescription != null ? closeDescription.hashCode() : 0);
 			return result;
-		}
-
-		public String getPairName() {
-			return pairName;
-		}
-		public void setPairName(String pairName) {
-			this.pairName = pairName;
-		}
-		public OrderAction getOrderAction() {
-			return orderAction;
-		}
-		public void setOrderAction(OrderAction orderAction) {
-			this.orderAction = orderAction;
-		}
-		public OrderType getOrderType() {
-			return orderType;
-		}
-		public void setOrderType(OrderType orderType) {
-			this.orderType = orderType;
-		}
-		public Double getPrimaryPrime() {
-			return primaryPrime;
-		}
-		public void setPrimaryPrime(Double primaryPrime) {
-			this.primaryPrime = primaryPrime;
-		}
-		public Double getSecondaryPrice() {
-			return secondaryPrice;
-		}
-		public void setSecondaryPrice(Double secondaryPrice) {
-			this.secondaryPrice = secondaryPrice;
-		}
-		public Integer getLeverage() {
-			return leverage;
-		}
-		public void setLeverage(Integer leverage) {
-			this.leverage = leverage;
-		}
-		public String getOrderDescription() {
-			return orderDescription;
-		}
-		public void setOrderDescription(String orderDescription) {
-			this.orderDescription = orderDescription;
-		}
-		public String getCloseDescription() {
-			return closeDescription;
-		}
-		public void setCloseDescription(String closeDescription) {
-			this.closeDescription = closeDescription;
 		}
 
 		@Override
@@ -356,12 +309,76 @@ public class OrderInfo {
 					   "pairName='" + pairName + '\'' +
 					   ", orderAction=" + orderAction +
 					   ", orderType=" + orderType +
-					   ", primaryPrime=" + primaryPrime +
+					   ", primaryPrice=" + primaryPrice +
 					   ", secondaryPrice=" + secondaryPrice +
 					   ", leverage=" + leverage +
 					   ", orderDescription='" + orderDescription + '\'' +
 					   ", closeDescription='" + closeDescription + '\'' +
 					   '}';
+		}
+
+		public String getPairName() {
+			return pairName;
+		}
+
+		public void setPairName(String pairName) {
+			this.pairName = pairName;
+		}
+
+		public OrderAction getOrderAction() {
+			return orderAction;
+		}
+
+		public void setOrderAction(OrderAction orderAction) {
+			this.orderAction = orderAction;
+		}
+
+		public OrderType getOrderType() {
+			return orderType;
+		}
+
+		public void setOrderType(OrderType orderType) {
+			this.orderType = orderType;
+		}
+
+		public BigDecimal getPrimaryPrice() {
+			return primaryPrice;
+		}
+
+		public void setPrimaryPrice(BigDecimal primaryPrice) {
+			this.primaryPrice = primaryPrice;
+		}
+
+		public BigDecimal getSecondaryPrice() {
+			return secondaryPrice;
+		}
+
+		public void setSecondaryPrice(BigDecimal secondaryPrice) {
+			this.secondaryPrice = secondaryPrice;
+		}
+
+		public Integer getLeverage() {
+			return leverage;
+		}
+
+		public void setLeverage(Integer leverage) {
+			this.leverage = leverage;
+		}
+
+		public String getOrderDescription() {
+			return orderDescription;
+		}
+
+		public void setOrderDescription(String orderDescription) {
+			this.orderDescription = orderDescription;
+		}
+
+		public String getCloseDescription() {
+			return closeDescription;
+		}
+
+		public void setCloseDescription(String closeDescription) {
+			this.closeDescription = closeDescription;
 		}
 	}
 }

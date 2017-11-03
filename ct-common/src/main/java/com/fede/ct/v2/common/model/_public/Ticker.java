@@ -1,4 +1,6 @@
-package model._public;
+package com.fede.ct.v2.common.model._public;
+
+import java.math.BigDecimal;
 
 /**
  * Created by f.barbano on 13/09/2017.
@@ -15,7 +17,7 @@ public class Ticker {
 	private TickerVolume tradesNumber;
 	private TickerVolume low;
 	private TickerVolume high;
-	private Double openingPrice;
+	private BigDecimal openingPrice;
 
 	@Override
 	public String toString() {
@@ -83,27 +85,27 @@ public class Ticker {
 	public void setHigh(TickerVolume high) {
 		this.high = high;
 	}
-	public Double getOpeningPrice() {
+	public BigDecimal getOpeningPrice() {
 		return openingPrice;
 	}
-	public void setOpeningPrice(Double openingPrice) {
+	public void setOpeningPrice(BigDecimal openingPrice) {
 		this.openingPrice = openingPrice;
 	}
 
 	public static class TickerPrice {
-		private Double price;
-		private Double lotVolume;
+		private BigDecimal price;
+		private BigDecimal lotVolume;
 
-		public Double getPrice() {
+		public BigDecimal getPrice() {
 			return price;
 		} 
-		public void setPrice(Double price) {
+		public void setPrice(BigDecimal price) {
 			this.price = price;
 		} 
-		public Double getLotVolume() {
+		public BigDecimal getLotVolume() {
 			return lotVolume;
 		} 
-		public void setLotVolume(Double lotVolume) {
+		public void setLotVolume(BigDecimal lotVolume) {
 			this.lotVolume = lotVolume;
 		}
 	}
@@ -120,19 +122,19 @@ public class Ticker {
 	}
 
 	public static class TickerVolume {
-		private Double today;
-		private Double last24Hours;
+		private BigDecimal today;
+		private BigDecimal last24Hours;
 
-		public Double getToday() {
+		public BigDecimal getToday() {
 			return today;
 		} 
-		public void setToday(Double today) {
+		public void setToday(BigDecimal today) {
 			this.today = today;
 		} 
-		public Double getLast24Hours() {
+		public BigDecimal getLast24Hours() {
 			return last24Hours;
 		} 
-		public void setLast24Hours(Double last24Hours) {
+		public void setLast24Hours(BigDecimal last24Hours) {
 			this.last24Hours = last24Hours;
 		}
 	}
