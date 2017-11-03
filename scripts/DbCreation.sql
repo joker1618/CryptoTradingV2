@@ -98,7 +98,6 @@ CREATE TABLE IF NOT EXISTS ORDERS (
     MISC            VARCHAR(50),
     OFLAGS          VARCHAR(50),
     TRADES_IDX      VARCHAR(200),
-
     DESCR_PAIR_NAME     VARCHAR(20),
     DESCR_ORDER_ACTION  ENUM('buy', 'sell'),
     DESCR_ORDER_TYPE    ENUM('market', 'limit', 'stop-loss', 'take-profit', 'stop-loss-profit', 'stop-loss-profit-limit', 'stop-loss-limit', 'take-profit-limit', 'trailing-stop', 'trailing-stop-limit', 'stop-loss-and-limit', 'settle-position'),
