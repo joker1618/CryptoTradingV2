@@ -1,7 +1,6 @@
 package com.fede.ct.v2.common.model._private;
 
 import com.fede.ct.v2.common.model.types.*;
-import model.types.*;
 
 import java.math.BigDecimal;
 import java.util.List;
