@@ -14,9 +14,11 @@ import static com.fede.ct.v2.common.logger.LogService.LogLevel;
 class SimpleLogImpl implements SimpleLog {
 
 	private Logger logger;
+	private boolean showStackTrace;
 
-	SimpleLogImpl(Logger logger) {
+	SimpleLogImpl(Logger logger, boolean showStackTrace) {
 		this.logger = logger;
+		this.showStackTrace = showStackTrace;
 	}
 
 	@Override
@@ -83,16 +85,14 @@ class SimpleLogImpl implements SimpleLog {
 
 	private synchronized void doLogThrowable(Throwable t, Level level, String mex, Object... params) {
 		if(LogService.getMinLevel().intValue() <= level.intValue()) {
-			StringBuilder sb = new StringBuilder();
-			if (StringUtils.isNotBlank(mex)) {
-				sb.append(String.format(mex, params)).append("\n");
-			}
-			if (t != null) {
-				sb.append(toStringStackTrace(t));
-			}
-			logger.log(level, sb.toString().trim());
+			String logMex = StringUtils.isNotBlank(mex) ? String.format(mex, params) : "";
+			String tMex = t == null ? "" : (showStackTrace ? toStringStackTrace(t) : String.format("(%s)", t));
+			String pattern = showStackTrace ? "%s\n%s" : "%s\t%s";
+			String finalMex = String.format(pattern, logMex, tMex);
+			logger.log(level, finalMex.trim());
 		}
 	}
+
 	private synchronized String toStringStackTrace(Throwable t) {
 		StringBuilder sb = new StringBuilder();
 		Throwable selected = t;

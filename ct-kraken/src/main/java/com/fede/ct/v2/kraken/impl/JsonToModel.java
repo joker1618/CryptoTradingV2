@@ -83,7 +83,8 @@ class JsonToModel {
 			pair.setMarginStop(getInt(jsonPair, "margin_stop"));
 			assetPairs.add(pair);
 		}
-		Collections.sort(assetPairs, Comparator.comparing(AssetPair::getPairName));
+		assetPairs.sort(Comparator.comparing(AssetPair::getPairName));
+
 		return assetPairs;
 	}
 
@@ -120,7 +121,7 @@ class JsonToModel {
 				toRet.add(new FeeSchedule(vol, perc));
 			});
 		}
-		Collections.sort(toRet, Comparator.comparingInt(FeeSchedule::getVolume));
+		toRet.sort(Comparator.comparingInt(FeeSchedule::getVolume));
 		return toRet;
 	}
 	

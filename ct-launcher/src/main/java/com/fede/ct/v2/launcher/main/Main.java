@@ -5,6 +5,8 @@ import com.fede.ct.v2.common.config.IConfig;
 import com.fede.ct.v2.common.logger.LogFormatter;
 import com.fede.ct.v2.common.logger.LogService;
 import com.fede.ct.v2.common.logger.SimpleLog;
+import com.fede.ct.v2.service.IPublicService;
+import com.fede.ct.v2.service.PublicService;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
@@ -27,15 +29,13 @@ public class Main {
 		checkInputArgs(args);
 
 		// init logger
-		try {
-			LogService.configure(getLoggerConfig());
-		} catch (IOException e) {
-			logger.error(e, "Unable to init logger");
-		}
+		initLogger();
 
 		// log configs
 		logger.config("CONFIGS:\n%s", config);
 
+		IPublicService publicService = PublicService.getService();
+		publicService.startPublicEngine();
 
 	}
 
@@ -45,6 +45,15 @@ public class Main {
 			String usage = String.format("USAGE:\t\tjava -jar %s", jarName);
 			System.out.println(usage);
 			System.exit(1);
+		}
+	}
+
+	public static void initLogger() {
+		try {
+			LogService.configure(getLoggerConfig());
+		} catch (IOException e) {
+			logger.error(e, "Unable to init logger");
+			System.exit(2);
 		}
 	}
 
@@ -63,6 +72,11 @@ public class Main {
 			@Override
 			public LogFormatter getConsoleFormatter() {
 				return new LogFormatter(false, false, true);
+			}
+
+			@Override
+			public boolean isShowStackTrace() {
+				return true;
 			}
 
 			@Override

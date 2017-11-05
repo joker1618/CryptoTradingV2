@@ -8,9 +8,9 @@ class ConfigKeys {
 	static final String API_KEY = "kraken.api.key";
 	static final String API_SECRET = "kraken.api.secret";
 
-	static final String CALL_RATE_ASSETS = "kraken.run.call.rate.seconds.assets";
-	static final String CALL_RATE_ASSET_PAIRS = "kraken.run.call.rate.seconds.assetPairs";
-	static final String CALL_RATE_TICKERS = "kraken.run.call.rate.seconds.tickers";
+	static final String CALL_RATE_ASSETS = "kraken.run.call.frequency.seconds.assets";
+	static final String CALL_RATE_ASSET_PAIRS = "kraken.run.call.frequency.seconds.assetPairs";
+	static final String CALL_RATE_TICKERS = "kraken.run.call.frequency.seconds.tickers";
 
 	static final String DB_URL = "kraken.dao.db.URL";
 	static final String DB_USERNAME = "kraken.dao.db.username";

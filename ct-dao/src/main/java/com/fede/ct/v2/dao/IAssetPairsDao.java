@@ -11,6 +11,7 @@ import java.util.List;
 public interface IAssetPairsDao {
 
 	List<AssetPair> selectAssetPairs(boolean discardDotD);
+	List<String> selectAssetPairNames(boolean discardDotD);
 
 	void insertNewAssetPairs(Collection<AssetPair> assetPairs, long callTime);
 

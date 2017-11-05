@@ -6,6 +6,7 @@ import com.fede.ct.v2.common.model._public.AssetPair.FeeSchedule;
 import com.fede.ct.v2.common.model._public.AssetPair;
 import com.fede.ct.v2.common.util.StreamUtil;
 import com.fede.ct.v2.dao.IAssetPairsDao;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -28,10 +29,12 @@ public class AssetPairsDbDao extends AbstractDbDao implements IAssetPairsDao {
 	private static final String LEVERAGE_TYPE_BUY = "buy";
 	private static final String LEVERAGE_TYPE_SELL = "sell";
 
-	private static final String SELECT_VALIDS = "SELECT PAIR_ID, PAIR_NAME, ALT_NAME, A_CLASS_BASE, BASE, A_CLASS_QUOTE, QUOTE, LOT, PAIR_DECIMALS, LOT_DECIMALS, LOT_MULTIPLIER, FEE_VOLUME_CURRENCY, MARGIN_CALL, MARGIN_STOP FROM ASSET_PAIRS WHERE EXPIRE_TIME = 0";
-	private static final String SELECT_VALIDS_NO_DOT_D = "SELECT PAIR_ID, PAIR_NAME, ALT_NAME, A_CLASS_BASE, BASE, A_CLASS_QUOTE, QUOTE, LOT, PAIR_DECIMALS, LOT_DECIMALS, LOT_MULTIPLIER, FEE_VOLUME_CURRENCY, MARGIN_CALL, MARGIN_STOP FROM ASSET_PAIRS WHERE EXPIRE_TIME = 0 AND PAIR_NAME NOT LIKE '%.d'";
+	private static final String SELECT_VALIDS = "SELECT PAIR_ID, PAIR_NAME, ALT_NAME, A_CLASS_BASE, BASE, A_CLASS_QUOTE, QUOTE, LOT, PAIR_DECIMALS, LOT_DECIMALS, LOT_MULTIPLIER, FEE_VOLUME_CURRENCY, MARGIN_CALL, MARGIN_STOP FROM ASSET_PAIRS WHERE EXPIRE_TIME = 0 ORDER BY PAIR_NAME";
+	private static final String SELECT_VALIDS_NO_DOT_D = "SELECT PAIR_ID, PAIR_NAME, ALT_NAME, A_CLASS_BASE, BASE, A_CLASS_QUOTE, QUOTE, LOT, PAIR_DECIMALS, LOT_DECIMALS, LOT_MULTIPLIER, FEE_VOLUME_CURRENCY, MARGIN_CALL, MARGIN_STOP FROM ASSET_PAIRS WHERE EXPIRE_TIME = 0 AND PAIR_NAME NOT LIKE '%.d' ORDER BY PAIR_NAME";
 	private static final String SELECT_VALIDS_FEE = "SELECT PAIR_ID, FEE_TYPE, VOLUME, PERCENT_FEE FROM ASSET_PAIRS_FEE WHERE PAIR_ID IN (%s)";
 	private static final String SELECT_VALIDS_LEVERAGE = "SELECT PAIR_ID, LEVERAGE_TYPE, LEVERAGE_VALUE FROM ASSET_PAIRS_LEVERAGE WHERE PAIR_ID IN (%s)";
+	private static final String SELECT_NAMES = "SELECT PAIR_NAME FROM ASSET_PAIRS WHERE EXPIRE_TIME = 0 ORDER BY PAIR_NAME";
+	private static final String SELECT_NAMES_NO_DOT_D = "SELECT PAIR_NAME FROM ASSET_PAIRS WHERE EXPIRE_TIME = 0 AND PAIR_NAME NOT LIKE '%.d' ORDER BY PAIR_NAME";
 
 	private static final String UPDATE_EXPIRE_TIME = "UPDATE ASSET_PAIRS SET EXPIRE_TIME = %d WHERE EXPIRE_TIME = 0";
 	private static final String SELECT_NEXT_ID = "SELECT MAX(PAIR_ID) AS MAX_ID FROM ASSET_PAIRS";
@@ -57,6 +60,25 @@ public class AssetPairsDbDao extends AbstractDbDao implements IAssetPairsDao {
 	}
 
 	@Override
+	public List<String> selectAssetPairNames(boolean discardDotD) {
+		String query = discardDotD ? SELECT_NAMES_NO_DOT_D : SELECT_NAMES;
+		try (PreparedStatement ps = createPreparedStatement(query);
+			 ResultSet rs = ps.executeQuery()){
+
+			List<String> names = new ArrayList<>();
+			if(rs != null) {
+				while(rs.next()) {
+					names.add(rs.getString("PAIR_NAME"));
+				}
+			}
+			return names;
+
+		} catch (SQLException e) {
+			throw new TechnicalException(e, "Error performing select [query=%s]", query);
+		}
+	}
+
+	@Override
 	public void insertNewAssetPairs(Collection<AssetPair> assetPairs, long callTime) {
 		String qUpdate = String.format(UPDATE_EXPIRE_TIME, callTime);
 
@@ -67,8 +89,10 @@ public class AssetPairsDbDao extends AbstractDbDao implements IAssetPairsDao {
 		for(AssetPair ap : assetPairs) {
 			long id = nextId.getAndIncrement();
 			apValues.add(assetPairToValues(id, callTime, ap));
-			feeValues.add(feesToValues(id, ap));
-			levValues.add(leverageToValues(id, ap));
+			String strFee = feesToValues(id, ap);
+			if(StringUtils.isNotBlank(strFee))	feeValues.add(strFee);
+			String strLev = leverageToValues(id, ap);
+			if(StringUtils.isNotBlank(strLev))	levValues.add(strLev);
 		}
 		String qInsAssetPairs = INSERT_NEW_PREFIX + StreamUtil.join(apValues, ",");
 		String qInsFee = INSERT_NEW_FEE_PREFIX + StreamUtil.join(feeValues, ",");
@@ -148,6 +172,10 @@ public class AssetPairsDbDao extends AbstractDbDao implements IAssetPairsDao {
 					}
 				}
 			}
+			assetPairs.values().forEach(ap -> {
+				ap.getFees().sort(Comparator.comparingInt(FeeSchedule::getVolume));
+				ap.getFeesMaker().sort(Comparator.comparingInt(FeeSchedule::getVolume));
+			});
 
 		} catch (SQLException e) {
 			throw new TechnicalException(e, "Error performing select [query=%s]", query);

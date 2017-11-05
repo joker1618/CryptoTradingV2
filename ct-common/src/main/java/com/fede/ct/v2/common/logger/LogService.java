@@ -11,7 +11,6 @@ import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static java.util.logging.Logger.global;
 
 /**
  * Created by f.barbano on 01/10/2017.
@@ -22,6 +21,7 @@ public class LogService {
 
 	private Logger rootLogger;
 	private Level minLevel;
+	private boolean showStackTrace;
 //	private ConsoleHandler consoleHandler;
 //	private Map<Path,FileHandler> fileHandlerMap;
 
@@ -83,12 +83,13 @@ public class LogService {
 			}
 
 			INSTANCE.minLevel = min;
+			INSTANCE.showStackTrace = config.isShowStackTrace();
 		}
 	}
 
 	public static SimpleLog getLogger(String loggerName) {
 		Logger logger = Logger.getLogger(loggerName);
-		return new SimpleLogImpl(logger);
+		return new SimpleLogImpl(logger, INSTANCE.showStackTrace);
 	}
 	public static SimpleLog getLogger(Class<?> clazz) {
 		return getLogger(clazz.getName());
@@ -102,6 +103,7 @@ public class LogService {
 		String getRootLoggerName();
 		Level getConsoleLevel();
 		LogFormatter getConsoleFormatter();
+		boolean isShowStackTrace();
 		Map<Path, Pair<Level, LogFormatter>> getFileHandlers();
 	}
 

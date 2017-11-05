@@ -12,9 +12,9 @@ public interface IConfig {
 	String getKrakenApiSecret();
 
 	// Run parameters
-	int getCallSecondsRateAssets();
-	int getCallSecondsRateAssetPairs();
-	int getCallSecondsRateTickers();
+	int getCallAssetsSecondsFrequency();
+	int getCallAssetPairsSecondsFrequency();
+	int getCallTickersSecondsFrequency();
 
 	// DB config
 	String getDbUrl();

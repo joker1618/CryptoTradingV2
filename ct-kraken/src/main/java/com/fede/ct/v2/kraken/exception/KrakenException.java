@@ -8,7 +8,7 @@ import com.fede.ct.v2.kraken.impl.api.KrakenMethod;
 public class KrakenException extends Exception {
 
 	public KrakenException(KrakenMethod method, Throwable t) {
-		super(String.format("Unable to call kraken for methos %s", method.getName()), t);
+		super(String.format("Unable to call kraken for method %s", method.getName()), t);
 	}
 
 }

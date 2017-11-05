@@ -13,11 +13,12 @@ import java.util.List;
 public interface ICryptoModel {
 
 	List<Asset> getAssets();
-	List<AssetPair> getAssetPairs();
+	List<AssetPair> getAssetPairs(boolean discardDotD);
+	List<String> getAssetPairNames(boolean discardDotD);
 
-	boolean setNewAssets(Collection<Asset> assets);
-	boolean setNewAssetPairs(Collection<AssetPair> assetPairs);
+	boolean setNewAssets(List<Asset> assets, long callTime);
+	boolean setNewAssetPairs(List<AssetPair> assetPairs, long callTime);
 
-	void insertTickers(Collection<Ticker> tickers);
+	void insertTickers(List<Ticker> tickers, long callTime);
 
 }

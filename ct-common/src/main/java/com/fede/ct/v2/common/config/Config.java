@@ -20,7 +20,7 @@ public class Config extends AbstractConfig implements IConfig {
 	private Config() {
 		super();
 		try {
-			loadConfigFile("config/config.properties");
+			loadConfigFile("config/publicConfig.properties");
 		} catch (IOException e) {
 			throw new RuntimeException("Unable to init config", e);
 		}
@@ -37,17 +37,17 @@ public class Config extends AbstractConfig implements IConfig {
 	}
 
 	@Override
-	public int getCallSecondsRateAssets() {
+	public int getCallAssetsSecondsFrequency() {
 		return getInt(CALL_RATE_ASSETS, 86400);
 	}
 
 	@Override
-	public int getCallSecondsRateAssetPairs() {
+	public int getCallAssetPairsSecondsFrequency() {
 		return getInt(CALL_RATE_ASSET_PAIRS, 86400);
 	}
 
 	@Override
-	public int getCallSecondsRateTickers() {
+	public int getCallTickersSecondsFrequency() {
 		return getInt(CALL_RATE_TICKERS, 20);
 	}
 

@@ -28,4 +28,5 @@ public class StreamUtil {
 		return source.stream().map(mapFunc).collect(Collectors.joining(separator));
 	}
 
+
 }

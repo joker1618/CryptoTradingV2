@@ -9,6 +9,6 @@ import java.util.Collection;
  */
 public interface ITickersDao {
 
-	void insertTickers(long callTime, Collection<Ticker> tickers);
+	void insertTickers(Collection<Ticker> tickers, long callTime);
 
 }

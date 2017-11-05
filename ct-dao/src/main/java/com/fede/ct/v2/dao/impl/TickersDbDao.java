@@ -23,7 +23,7 @@ public class TickersDbDao extends AbstractDbDao implements ITickersDao {
 	}
 
 	@Override
-	public void insertTickers(long callTime, Collection<Ticker> tickers) {
+	public void insertTickers(Collection<Ticker> tickers, long callTime) {
 		String query = INSERT_NEW_PREFIX + StreamUtil.join(tickers, ",", t -> tickerToValues(callTime, t));
 		super.performUpdate(query);
 	}

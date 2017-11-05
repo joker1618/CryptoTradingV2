@@ -14,6 +14,10 @@ public class Converter {
 		return Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDateTime();
 	}
 
+	public static long localDateTimeToMillis(LocalDateTime ldt) {
+		return ldt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+	}
+
 	public static BigDecimal stringToBigDecimal(String str) {
 		double num = Double.parseDouble(str.trim());
 		return BigDecimal.valueOf(num);

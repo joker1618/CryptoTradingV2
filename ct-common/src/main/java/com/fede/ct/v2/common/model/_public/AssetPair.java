@@ -228,13 +228,13 @@ public class AssetPair {
 			FeeSchedule that = (FeeSchedule) o;
 
 			if (volume != null ? !volume.equals(that.volume) : that.volume != null) return false;
-			return percentFee != null ? percentFee.equals(that.percentFee) : that.percentFee == null;
+			return percentFee != null ? percentFee.compareTo(that.percentFee) == 0 : that.percentFee == null;
 		}
 
 		@Override
 		public int hashCode() {
 			int result = volume != null ? volume.hashCode() : 0;
-			result = 31 * result + (percentFee != null ? percentFee.hashCode() : 0);
+			result = 31 * result + (percentFee != null ? Double.valueOf(percentFee.doubleValue()).hashCode() : 0);
 			return result;
 		}
 
