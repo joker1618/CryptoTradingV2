@@ -1,5 +1,7 @@
 package com.fede.ct.v2.common.config;
 
+import java.util.logging.Level;
+
 /**
  * Created by f.barbano on 02/11/2017.
  */
@@ -19,4 +21,6 @@ public interface IConfig {
 	String getDbUsername();
 	String getDbPassword();
 
+	// Logger config
+	Level getConsoleLevel();
 }

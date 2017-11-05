@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>ct-dao</artifactId>
+    <artifactId>ct-service</artifactId>
     <version>${parent.version}</version>
 
     <dependencies>
@@ -18,11 +18,15 @@
             <artifactId>ct-common</artifactId>
             <version>${parent.version}</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.44</version>
+            <groupId>com.fede.app</groupId>
+            <artifactId>ct-kraken</artifactId>
+            <version>${parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fede.app</groupId>
+            <artifactId>ct-datalayer</artifactId>
+            <version>${parent.version}</version>
         </dependency>
     </dependencies>
 

@@ -1,4 +1,4 @@
-package com.fede.ct.v2.kraken;
+package com.fede.ct.v2.kraken.impl.api;
 
 /**
  * Represents an API method.

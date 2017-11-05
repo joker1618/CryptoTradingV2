@@ -1,4 +1,4 @@
-package com.fede.ct.v2.kraken;
+package com.fede.ct.v2.kraken.impl.api;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;

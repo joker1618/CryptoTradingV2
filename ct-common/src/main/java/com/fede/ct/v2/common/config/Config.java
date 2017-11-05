@@ -1,8 +1,9 @@
 package com.fede.ct.v2.common.config;
 
 import java.io.IOException;
+import java.util.logging.Level;
 
-import static com.fede.ct.v2.common.config.ConfigKey.*;
+import static com.fede.ct.v2.common.config.ConfigKeys.*;
 
 /**
  * Created by f.barbano on 03/11/2017.
@@ -11,7 +12,7 @@ public class Config extends AbstractConfig implements IConfig {
 
 	private static final IConfig instance = new Config();
 
-	public static IConfig getInstance() {
+	public static IConfig getUniqueInstance() {
 		return instance;
 	}
 
@@ -20,13 +21,9 @@ public class Config extends AbstractConfig implements IConfig {
 		super();
 		try {
 			loadConfigFile("config/config.properties");
-			configureLogger();
 		} catch (IOException e) {
 			throw new RuntimeException("Unable to init config", e);
 		}
-	}
-	private void configureLogger() {
-		// todo
 	}
 
 	@Override
@@ -67,5 +64,10 @@ public class Config extends AbstractConfig implements IConfig {
 	@Override
 	public String getDbPassword() {
 		return getString(DB_PASSWORD);
+	}
+
+	@Override
+	public Level getConsoleLevel() {
+		return getLoggerLevel(CONSOLE_LEVEL, Level.ALL);
 	}
 }

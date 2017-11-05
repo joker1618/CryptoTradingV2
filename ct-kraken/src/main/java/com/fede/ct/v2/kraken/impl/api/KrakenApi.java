@@ -1,4 +1,4 @@
-package com.fede.ct.v2.kraken;
+package com.fede.ct.v2.kraken.impl.api;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -11,7 +11,7 @@ import java.util.Map;
  *
  * @author nyg
  */
-class KrakenApi {
+public class KrakenApi {
     
     private static final String OTP = "otp";
     private static final String NONCE = "nonce";
@@ -23,7 +23,14 @@ class KrakenApi {
     /** The API secret. */
     private String secret;
 
-    /**
+    public KrakenApi() {}
+
+	public KrakenApi(String key, String secret) {
+		this.key = key;
+		this.secret = secret;
+	}
+
+	/**
      * Query a public method of the API with the given parameters.
      *
      * @param method the API method
@@ -125,24 +132,6 @@ class KrakenApi {
      */
     public String queryPrivate(KrakenMethod method, Map<String, String> parameters) throws IOException, InvalidKeyException, NoSuchAlgorithmException {
         return queryPrivate(method, null, parameters);
-    }
-
-    /**
-     * Sets the API key.
-     *
-     * @param key the API key
-     */
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    /**
-     * Sets the API secret.
-     *
-     * @param secret the API secret
-     */
-    public void setSecret(String secret) {
-        this.secret = secret;
     }
 
 }

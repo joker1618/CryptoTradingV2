@@ -1,10 +1,14 @@
 package com.fede.ct.v2.dao;
 
+import com.fede.ct.v2.common.model._public.Ticker;
+
+import java.util.Collection;
+
 /**
  * Created by f.barbano on 10/10/2017.
  */
 public interface ITickersDao {
 
-
+	void insertTickers(long callTime, Collection<Ticker> tickers);
 
 }
