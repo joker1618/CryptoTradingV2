@@ -10,4 +10,5 @@ public class KrakenFactory {
 	public static IKrakenPublic getPublicCaller() {
 		return new KrakenPublicImpl();
 	}
+
 }

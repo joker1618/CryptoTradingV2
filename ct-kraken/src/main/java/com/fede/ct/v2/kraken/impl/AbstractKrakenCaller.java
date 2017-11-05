@@ -2,6 +2,7 @@ package com.fede.ct.v2.kraken.impl;
 
 import com.fede.ct.v2.common.logger.LogService;
 import com.fede.ct.v2.common.logger.SimpleLog;
+import com.fede.ct.v2.common.util.OutFormat;
 import com.fede.ct.v2.kraken.exception.KrakenCallError;
 import com.fede.ct.v2.kraken.exception.KrakenException;
 import com.fede.ct.v2.kraken.impl.api.KrakenApi;
@@ -33,7 +34,8 @@ abstract class AbstractKrakenCaller {
 	}
 	protected JsonToModel performKrakenCall(KrakenMethod method, List<ApiParam> apiParamList) throws KrakenCallError, KrakenException {
 		try {
-			logger.debug("Performing kraken call, method=%s, apiParams=%s", method.getName(), apiParamList);
+			logger.debug("Kraken call (%s): start  -->  apiParams = %s", method.getName(), apiParamList);
+			long startTime = System.currentTimeMillis();
 
 			// convert api param list to map
 			Map<String, String> apiParamMap = null;
@@ -46,7 +48,9 @@ abstract class AbstractKrakenCaller {
 
 			// perform kraken call
 			String json = method.isPublic() ? krakenApi.queryPublic(method, apiParamMap) : krakenApi.queryPrivate(method, apiParamMap);
-			logger.fine("%s json received --> %s", method.getName(), json);
+			long endTime = System.currentTimeMillis();
+			logger.debug("Kraken call (%s): elapsed %s", method.getName(), OutFormat.toStringElapsed(startTime, endTime, true));
+			logger.fine("Kraken call (%s): json received --> %s", method.getName(), json);
 
 			JsonToModel jm = new JsonToModel(json);
 			if(jm.containsErrors()) {

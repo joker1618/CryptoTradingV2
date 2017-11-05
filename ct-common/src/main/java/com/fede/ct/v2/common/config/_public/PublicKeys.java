@@ -1,9 +1,9 @@
-package com.fede.ct.v2.common.config;
+package com.fede.ct.v2.common.config._public;
 
 /**
  * Created by f.barbano on 03/11/2017.
  */
-class ConfigKeys {
+class PublicKeys {
 
 	static final String API_KEY = "kraken.api.key";
 	static final String API_SECRET = "kraken.api.secret";

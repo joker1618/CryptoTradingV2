@@ -1,7 +1,5 @@
 package com.fede.ct.v2.kraken.impl;
 
-import com.fede.ct.v2.common.logger.LogService;
-import com.fede.ct.v2.common.logger.SimpleLog;
 import com.fede.ct.v2.common.model._public.Asset;
 import com.fede.ct.v2.common.model._public.AssetPair;
 import com.fede.ct.v2.common.model._public.Ticker;

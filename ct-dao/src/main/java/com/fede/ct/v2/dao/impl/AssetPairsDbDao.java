@@ -1,9 +1,8 @@
 package com.fede.ct.v2.dao.impl;
 
 import com.fede.ct.v2.common.exception.TechnicalException;
-import com.fede.ct.v2.common.model._public.Asset;
-import com.fede.ct.v2.common.model._public.AssetPair.FeeSchedule;
 import com.fede.ct.v2.common.model._public.AssetPair;
+import com.fede.ct.v2.common.model._public.AssetPair.FeeSchedule;
 import com.fede.ct.v2.common.util.StreamUtil;
 import com.fede.ct.v2.dao.IAssetPairsDao;
 import org.apache.commons.lang3.StringUtils;
@@ -15,7 +14,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicLongArray;
 
 
 

@@ -1,5 +1,6 @@
 package com.fede.ct.v2.common.config;
 
+import com.fede.ct.v2.common.logger.LogService;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
@@ -167,7 +168,7 @@ public abstract class AbstractConfig {
 	}
 	protected Level getLoggerLevel(String key, Level _default) {
 		try {
-			return Level.parse(getString(key));
+			return LogService.LogLevel.parse(getString(key));
 		} catch(Exception ex) {
 			return _default;
 		}

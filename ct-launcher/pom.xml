@@ -20,7 +20,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.fede.ct.v2.launcher.main.Main</mainClass>
+                            <mainClass>com.fede.ct.v2.launcher.main.CryptoMain</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

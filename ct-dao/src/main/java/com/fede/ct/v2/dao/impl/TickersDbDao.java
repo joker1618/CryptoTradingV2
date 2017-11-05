@@ -51,7 +51,7 @@ public class TickersDbDao extends AbstractDbDao implements ITickersDao {
 			toJdbcString(ticker.getHigh().getToday()),
 			toJdbcString(ticker.getHigh().getLast24Hours()),
 			toJdbcString(ticker.getOpeningPrice()),
-			OutFormat.toString(callTime, "yyyyMMddHHmmss")
+			OutFormat.toStringLDT(callTime, "yyyyMMddHHmmss")
 		);
 	}
 }

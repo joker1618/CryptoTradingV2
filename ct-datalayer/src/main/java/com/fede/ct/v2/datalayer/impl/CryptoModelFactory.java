@@ -1,7 +1,7 @@
 package com.fede.ct.v2.datalayer.impl;
 
-import com.fede.ct.v2.common.config.Config;
-import com.fede.ct.v2.common.config.IConfig;
+import com.fede.ct.v2.common.config._public.IPublicConfig;
+import com.fede.ct.v2.common.config._public.PublicConfig;
 import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.logger.LogService;
 import com.fede.ct.v2.common.logger.SimpleLog;
@@ -9,11 +9,9 @@ import com.fede.ct.v2.dao.impl.AssetPairsDbDao;
 import com.fede.ct.v2.dao.impl.AssetsDbDao;
 import com.fede.ct.v2.dao.impl.TickersDbDao;
 import com.fede.ct.v2.datalayer.ICryptoModel;
-import com.mysql.jdbc.ConnectionImpl;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.SQLException;
 
 /**
  * Created by f.barbano on 05/11/2017.
@@ -21,7 +19,7 @@ import java.sql.SQLException;
 public class CryptoModelFactory {
 
 	private static final SimpleLog logger = LogService.getLogger(CryptoModelFactory.class);
-	private static final IConfig config = Config.getUniqueInstance();
+	private static final IPublicConfig config = PublicConfig.getUniqueInstance();
 
 	public static ICryptoModel getModel() {
 		Connection conn = createConnection();

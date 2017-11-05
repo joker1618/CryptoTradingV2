@@ -3,17 +3,14 @@ package com.fede.ct.v2.datalayer.impl;
 import com.fede.ct.v2.common.model._public.Asset;
 import com.fede.ct.v2.common.model._public.AssetPair;
 import com.fede.ct.v2.common.model._public.Ticker;
-import com.fede.ct.v2.common.util.StreamUtil;
 import com.fede.ct.v2.dao.IAssetPairsDao;
 import com.fede.ct.v2.dao.IAssetsDao;
 import com.fede.ct.v2.dao.ITickersDao;
 import com.fede.ct.v2.datalayer.ICryptoModel;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Created by f.barbano on 05/11/2017.

@@ -1,7 +1,5 @@
-package com.fede.ct.v2.service;
+package com.fede.ct.v2.service.impl;
 
-import com.fede.ct.v2.common.config.Config;
-import com.fede.ct.v2.common.config.IConfig;
 import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.logger.LogService;
 import com.fede.ct.v2.common.logger.SimpleLog;
@@ -9,12 +7,9 @@ import com.fede.ct.v2.common.model._public.Asset;
 import com.fede.ct.v2.common.model._public.AssetPair;
 import com.fede.ct.v2.common.model._public.Ticker;
 import com.fede.ct.v2.common.util.Converter;
-import com.fede.ct.v2.datalayer.ICryptoModel;
-import com.fede.ct.v2.datalayer.impl.CryptoModelFactory;
 import com.fede.ct.v2.kraken.IKrakenPublic;
-import com.fede.ct.v2.kraken.exception.KrakenCallError;
-import com.fede.ct.v2.kraken.exception.KrakenException;
 import com.fede.ct.v2.kraken.impl.KrakenFactory;
+import com.fede.ct.v2.service.ICryptoService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,28 +22,20 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by f.barbano on 04/11/2017.
  */
-public class PublicService implements IPublicService {
+class PublicService extends AbstractCryptoService implements ICryptoService {
 
 	private static final SimpleLog logger = LogService.getLogger(PublicService.class);
 	private static final int THREAD_POOL_SIZE = 3; // assets, asset pairs, tickers
 
-	private static final IPublicService instance = new PublicService();
-	private static final IConfig config = Config.getUniqueInstance();
-
 	private final IKrakenPublic krakenCaller;
-	private final ICryptoModel model;
 
-	private PublicService() {
+	PublicService() {
+		super();
 		krakenCaller = KrakenFactory.getPublicCaller();
-		model = CryptoModelFactory.getModel();
-	}
-
-	public static IPublicService getService() {
-		return instance;
 	}
 
 	@Override
-	public synchronized void startPublicEngine() {
+	public synchronized void startEngine() {
 		logger.debug("Start Kraken public engine");
 
 		// Download first assets and assets pairs
@@ -87,8 +74,8 @@ public class PublicService implements IPublicService {
 			boolean changed = model.setNewAssets(assets, callTime);
 			logger.info("%d assets downloaded --> %s", assets.size(), (changed ? "data changed (new valid startTime=" + callTime + ")" : "no changes"));
 			
-		} catch (KrakenCallError | KrakenException ex) {
-			logger.error(ex.getMessage());
+		} catch (Exception ex) {
+			logger.error(ex, "Exception caught while downloading assets");
 		}
 	}
 
@@ -99,8 +86,8 @@ public class PublicService implements IPublicService {
 			boolean changed = model.setNewAssetPairs(assetPairs, callTime);
 			logger.info("%d asset pairs downloaded --> %s", assetPairs.size(), (changed ? "data changed (new valid startTime is " + callTime + ")" : "no changes"));
 
-		} catch (KrakenCallError | KrakenException ex) {
-			logger.error(ex.getMessage());
+		} catch (Exception ex) {
+			logger.error(ex, "Exception caught while downloading asset pairs");
 		}
 	}
 
@@ -112,12 +99,9 @@ public class PublicService implements IPublicService {
 			model.insertTickers(tickers, callTime);
 			logger.info("%d tickers downloaded", tickers.size());
 
-		} catch (KrakenCallError | KrakenException ex) {
-			logger.error(ex.getMessage());
+		} catch (Exception ex) {
+			logger.error(ex, "Exception caught while downloading tickers");
 		}
 	}
-
-
-
 
 }
