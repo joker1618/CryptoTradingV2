@@ -1,12 +1,11 @@
 package com.fede.ct.v2.datalayer.impl;
 
+import com.fede.ct.v2.common.model._private.OrderInfo;
 import com.fede.ct.v2.common.model._public.Asset;
 import com.fede.ct.v2.common.model._public.AssetPair;
 import com.fede.ct.v2.common.model._public.Ticker;
-import com.fede.ct.v2.dao.IAssetPairsDao;
-import com.fede.ct.v2.dao.IAssetsDao;
-import com.fede.ct.v2.dao.ITickersDao;
-import com.fede.ct.v2.datalayer.ICryptoModel;
+import com.fede.ct.v2.dao.*;
+import com.fede.ct.v2.datalayer.IDataModel;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -15,11 +14,12 @@ import java.util.List;
 /**
  * Created by f.barbano on 05/11/2017.
  */
-class CryptoModelImpl implements ICryptoModel {
+class DataModelImpl implements IDataModel {
 
 	private IAssetsDao assetsDao;
 	private IAssetPairsDao assetPairsDao;
 	private ITickersDao tickersDao;
+	private IOrdersDao ordersDao;
 
 
 	@Override
@@ -70,6 +70,11 @@ class CryptoModelImpl implements ICryptoModel {
 		tickersDao.insertTickers(tickers, callTime);
 	}
 
+	@Override
+	public void updateOrders(List<OrderInfo> orders, int userId) {
+		ordersDao.updateOrders(orders, userId);
+	}
+
 
 	void setAssetsDao(IAssetsDao assetsDao) {
 		this.assetsDao = assetsDao;
@@ -79,5 +84,8 @@ class CryptoModelImpl implements ICryptoModel {
 	}
 	void setTickersDao(ITickersDao tickersDao) {
 		this.tickersDao = tickersDao;
+	}
+	void setOrdersDao(IOrdersDao ordersDao) {
+		this.ordersDao = ordersDao;
 	}
 }

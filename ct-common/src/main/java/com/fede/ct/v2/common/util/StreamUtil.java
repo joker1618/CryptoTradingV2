@@ -25,6 +25,7 @@ public class StreamUtil {
 		return join(source, separator, String::valueOf);
 	}
 	public static <T> String join(Collection<T> source, String separator, Function<T,String> mapFunc) {
+		if(source == null)	return null;
 		return source.stream().map(mapFunc).collect(Collectors.joining(separator));
 	}
 

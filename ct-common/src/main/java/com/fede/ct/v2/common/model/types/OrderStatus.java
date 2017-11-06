@@ -24,9 +24,9 @@ public enum OrderStatus {
 		return label;
 	}
 
-	public static synchronized OrderStatus getByLabel(String toFind) {
+	public static OrderStatus getByLabel(String toFind) {
 		return Arrays.stream(values())
-				   .filter(at -> at.label.equals(toFind))
+				   .filter(at -> at.label.equals(toFind.trim()))
 				   .findAny()
 				   .orElse(null);
 	}

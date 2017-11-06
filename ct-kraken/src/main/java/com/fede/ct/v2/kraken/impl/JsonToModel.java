@@ -1,5 +1,7 @@
 package com.fede.ct.v2.kraken.impl;
 
+import com.fede.ct.v2.common.model._private.OrderInfo;
+import com.fede.ct.v2.common.model._private.OrderInfo.OrderDescr;
 import com.fede.ct.v2.common.model._public.Asset;
 import com.fede.ct.v2.common.model._public.AssetPair;
 import com.fede.ct.v2.common.model._public.AssetPair.FeeSchedule;
@@ -7,8 +9,11 @@ import com.fede.ct.v2.common.model._public.Ticker;
 import com.fede.ct.v2.common.model._public.Ticker.TickerPrice;
 import com.fede.ct.v2.common.model._public.Ticker.TickerVolume;
 import com.fede.ct.v2.common.model._public.Ticker.TickerWholePrice;
+import com.fede.ct.v2.common.model.types.*;
 import com.fede.ct.v2.common.util.Converter;
+import com.fede.ct.v2.common.util.StrUtil;
 import com.fede.ct.v2.common.util.StreamUtil;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.json.*;
 import java.io.StringReader;
@@ -110,6 +115,20 @@ class JsonToModel {
 		return toRet;
 	}
 
+	public List<OrderInfo> parseOpenOrders() {
+		return parseOrderInfoSet(result.getJsonObject("open").entrySet());
+	}
+
+	public List<OrderInfo> parseClosedOrders() {
+		return parseOrderInfoSet(result.getJsonObject("closed").entrySet());
+	}
+
+//	public List<OrderInfo> parseOrdersInfo() {
+//		return parseOrderInfoSet(result.entrySet());
+//	}
+
+
+
 
 	private List<FeeSchedule> parseJsonFeeScheduleArray(JsonObject jsonObj, String key) {
 		List<FeeSchedule> toRet = new ArrayList<>();
@@ -148,6 +167,55 @@ class JsonToModel {
 		return tv;
 	}
 
+	private List<OrderInfo> parseOrderInfoSet(Set<Map.Entry<String, JsonValue>> entrySet) {
+		List<OrderInfo> toRet = new ArrayList<>();
+		for(Map.Entry<String, JsonValue> entry : entrySet) {
+			JsonObject jtx = entry.getValue().asJsonObject();
+			OrderInfo oi = parseOrderInfo(jtx);
+			oi.setOrderTxID(entry.getKey());
+			toRet.add(oi);
+		}
+		return toRet;
+	}
+	private OrderInfo parseOrderInfo(JsonObject jtx) {
+		JsonObject jdescr = jtx.getJsonObject("descr");
+
+		OrderDescr od = new OrderDescr();
+		od.setPairName(getString(jdescr, "pair"));
+		od.setOrderAction(OrderAction.getByLabel(getString(jdescr, "type")));
+		od.setOrderType(OrderType.getByLabel(getString(jdescr, "ordertype")));
+		od.setPrimaryPrice(getBigDecimal(jdescr, "price"));
+		od.setSecondaryPrice(getBigDecimal(jdescr, "price2"));
+		String strLeverage = getString(jdescr, "leverage");
+		if(strLeverage != null && !strLeverage.equals("none")) {
+			od.setLeverage(Integer.parseInt(strLeverage));
+		}
+		od.setOrderDescription(getString(jdescr, "order"));
+		od.setCloseDescription(getString(jdescr, "close"));
+
+		OrderInfo oi = new OrderInfo();
+		oi.setRefId(getString(jtx, "refid"));
+		oi.setUserRef(getString(jtx, "userref"));
+		oi.setStatus(OrderStatus.getByLabel(getStringValue(jtx, "status")));
+		oi.setOpenTimestamp(getTimestamp(jtx, "opentm", 1000L));
+		oi.setStartTimestamp(getTimestamp(jtx, "starttm", 1000L));
+		oi.setExpireTimestamp(getTimestamp(jtx, "expiretm", 1000L));
+		oi.setDescr(od);
+		oi.setVolume(getBigDecimal(jtx, "vol"));
+		oi.setVolumeExecuted(getBigDecimal(jtx, "vol_exec"));
+		oi.setCost(getBigDecimal(jtx, "cost"));
+		oi.setFee(getBigDecimal(jtx, "fee"));
+		oi.setAveragePrice(getBigDecimal(jtx, "price"));
+		oi.setStopPrice(getBigDecimal(jtx, "stopprice"));
+		oi.setLimitPrice(getBigDecimal(jtx, "limitprice"));
+		oi.setMisc(StreamUtil.map(getCommaDelimitedList(jtx, "misc"), OrderMisc::getByLabel));
+		oi.setFlags(StreamUtil.map(getCommaDelimitedList(jtx, "oflags"), OrderFlag::getByLabel));
+		oi.setTrades(getArrayString(jtx, "trades"));
+		oi.setCloseTimestamp(getTimestamp(jtx, "closetm", 1000L));
+		oi.setReason(getString(jtx, "reason"));
+
+		return oi;
+	}
 
 	private String jsonValueToString(JsonValue jv) {
 		if(jv.getValueType() == JsonValue.ValueType.STRING) {
@@ -173,15 +241,24 @@ class JsonToModel {
 		}
 		return null;
 	}
-	private BigDecimal getBigDecimal(JsonObject jsonObject, String key) {
+	private Long getTimestamp(JsonObject jsonObject, String key, long multiplier) {
+		Double dnum = getDouble(jsonObject, key);
+		if(dnum == null) 	return null;
+		return (long)(dnum * multiplier);
+	}
+	private Long getLong(JsonObject jsonObject, String key) {
 		String value = getStringValue(jsonObject, key);
 		if(value == null) 	return null;
-		return Converter.stringToBigDecimal(value);
+		return Long.parseLong(value);
 	}
 	private Double getDouble(JsonObject jsonObject, String key) {
 		String value = getStringValue(jsonObject, key);
 		if(value == null) 	return null;
 		return Double.parseDouble(value);
+	}private BigDecimal getBigDecimal(JsonObject jsonObject, String key) {
+		String value = getStringValue(jsonObject, key);
+		if(value == null) 	return null;
+		return Converter.stringToBigDecimal(value);
 	}
 	private Integer getInt(JsonObject jsonObject, String key) {
 		String value = getStringValue(jsonObject, key);
@@ -201,4 +278,13 @@ class JsonToModel {
 		Collections.sort(intList);
 		return intList;
 	}
+	private List<String> getCommaDelimitedList(JsonObject jObj, String key) {
+		String strValue = getStringValue(jObj, key);
+		List<String> toRet = new ArrayList<>();
+		if(StringUtils.isNotBlank(strValue)) {
+			toRet = StrUtil.splitFieldsList(strValue, ",", true);
+		}
+		return toRet;
+	}
+
 }

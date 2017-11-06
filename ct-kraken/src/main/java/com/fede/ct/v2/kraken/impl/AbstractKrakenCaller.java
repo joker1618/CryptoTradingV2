@@ -7,6 +7,7 @@ import com.fede.ct.v2.kraken.exception.KrakenCallError;
 import com.fede.ct.v2.kraken.exception.KrakenException;
 import com.fede.ct.v2.kraken.impl.api.KrakenApi;
 import com.fede.ct.v2.kraken.impl.api.KrakenMethod;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;

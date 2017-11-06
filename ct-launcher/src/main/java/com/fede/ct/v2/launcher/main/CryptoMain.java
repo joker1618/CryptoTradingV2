@@ -1,7 +1,8 @@
 package com.fede.ct.v2.launcher.main;
 
-import com.fede.ct.v2.common.config._public.IPublicConfig;
-import com.fede.ct.v2.common.config._public.PublicConfig;
+import com.fede.ct.v2.common.config._public.ConfigPrivate;
+import com.fede.ct.v2.common.config._public.IConfigPublic;
+import com.fede.ct.v2.common.config._public.ConfigPublic;
 import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.logger.LogFormatter;
 import com.fede.ct.v2.common.logger.LogService;
@@ -25,8 +26,10 @@ import static com.fede.ct.v2.common.logger.LogService.LogServiceConfig;
 public final class CryptoMain {
 
 	private static final SimpleLog logger = LogService.getLogger(CryptoMain.class);
+	// todo remove
+	private static final String PRIVATE_CONFIG_PATH = "config/privatePianta.properties";
 
-	private static final IPublicConfig publicConfig = PublicConfig.getUniqueInstance();
+	private static final IConfigPublic configPublic = ConfigPublic.getUniqueInstance();
 
 	private enum EngineTypology { PUBLIC, PRIVATE, STRATEGY }
 
@@ -37,16 +40,16 @@ public final class CryptoMain {
 		EngineTypology runTypology = checkInputArgs(args);
 
 		// init logger
-		initLogger();
+		initLogger(runTypology);
 
 		// log configs
-		logger.config("PUBLIC CONFIGS:\n%s", publicConfig);
+		logger.config("PUBLIC CONFIGS:\n%s", configPublic);
 
 		ICryptoService service;
 
 		switch (runTypology) {
-			case PUBLIC:	service = CryptoServiceFactory.getPublicService(); break;
-			case PRIVATE:
+			case PUBLIC:	service = CryptoServiceFactory.getServicePublic(); break;
+			case PRIVATE:   service = CryptoServiceFactory.getServicePrivate(new ConfigPrivate(PRIVATE_CONFIG_PATH)); break;
 			case STRATEGY:
 			default:
 				throw new TechnicalException("Service not yet implemented for run typology = %s", runTypology);
@@ -57,17 +60,15 @@ public final class CryptoMain {
 		logger.info("End %s run. Elapsed: %s", runTypology, OutFormat.toStringElapsed(startMain, System.currentTimeMillis(), false));
 	}
 
-	public static EngineTypology checkInputArgs(String[] args) {
+	private static EngineTypology checkInputArgs(String[] args) {
 		EngineTypology toRun = EngineTypology.PUBLIC;
-		boolean showUsage = false;
 
-		if(args.length > 1) {
-			showUsage = true;
-		} else if(args.length == 1) {
+		boolean showUsage = true;
+		if(args.length == 1) {
 			try {
 				toRun = EngineTypology.valueOf(args[0].toUpperCase());
+				showUsage = false;
 			} catch (IllegalArgumentException ex) {
-				showUsage = true;
 			}
 		}
 
@@ -81,16 +82,16 @@ public final class CryptoMain {
 		return toRun;
 	}
 
-	private static void initLogger() {
+	private static void initLogger(EngineTypology runTypology) {
 		try {
-			LogService.configure(getLoggerConfig());
+			LogService.configure(getLoggerConfig(runTypology));
 		} catch (IOException e) {
 			logger.error(e, "Unable to init logger");
 			System.exit(2);
 		}
 	}
 
-	private static LogServiceConfig getLoggerConfig() {
+	private static LogServiceConfig getLoggerConfig(EngineTypology runTypology) {
 		return new LogServiceConfig() {
 			@Override
 			public String getRootLoggerName() {
@@ -99,7 +100,7 @@ public final class CryptoMain {
 
 			@Override
 			public Level getConsoleLevel() {
-				return publicConfig.getConsoleLevel();
+				return configPublic.getConsoleLevel();
 			}
 
 			@Override
@@ -114,7 +115,7 @@ public final class CryptoMain {
 
 			@Override
 			public Map<Path, Pair<Level, LogFormatter>> getFileHandlers() {
-				Path errPublicPath = publicConfig.getLogFolder().resolve("cryptotrading.public.warn");
+				Path errPublicPath = configPublic.getLogFolder().resolve(String.format("ct.%s.warn", runTypology.name().toLowerCase()));
 				Pair<Level, LogFormatter> pair = Pair.of(Level.WARNING, new LogFormatter(true, true, true));
 				return Collections.singletonMap(errPublicPath, pair);
 			}

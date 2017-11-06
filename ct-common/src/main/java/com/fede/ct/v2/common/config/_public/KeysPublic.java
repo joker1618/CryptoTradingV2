@@ -3,10 +3,7 @@ package com.fede.ct.v2.common.config._public;
 /**
  * Created by f.barbano on 03/11/2017.
  */
-class PublicKeys {
-
-	static final String API_KEY = "kraken.api.key";
-	static final String API_SECRET = "kraken.api.secret";
+class KeysPublic {
 
 	static final String CALL_RATE_ASSETS = "kraken.run.call.frequency.seconds.assets";
 	static final String CALL_RATE_ASSET_PAIRS = "kraken.run.call.frequency.seconds.assetPairs";

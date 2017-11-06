@@ -1,5 +1,7 @@
 package com.fede.ct.v2.service.impl;
 
+import com.fede.ct.v2.common.config._public.ConfigPrivate;
+import com.fede.ct.v2.common.config._public.IConfigPrivate;
 import com.fede.ct.v2.service.ICryptoService;
 
 /**
@@ -7,12 +9,16 @@ import com.fede.ct.v2.service.ICryptoService;
  */
 public class CryptoServiceFactory {
 
-	private static PublicService publicService;
+	private static ServicePublic servicePublic;
 
-	public static synchronized ICryptoService getPublicService() {
-		if(publicService == null) {
-			publicService = new PublicService();
+	public static synchronized ICryptoService getServicePublic() {
+		if(servicePublic == null) {
+			servicePublic = new ServicePublic();
 		}
-		return publicService;
+		return servicePublic;
+	}
+
+	public static synchronized ICryptoService getServicePrivate(IConfigPrivate configPrivate) {
+		return new ServicePrivate(configPrivate);
 	}
 }

@@ -22,14 +22,14 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by f.barbano on 04/11/2017.
  */
-class PublicService extends AbstractCryptoService implements ICryptoService {
+class ServicePublic extends AbstractCryptoService implements ICryptoService {
 
-	private static final SimpleLog logger = LogService.getLogger(PublicService.class);
+	private static final SimpleLog logger = LogService.getLogger(ServicePublic.class);
 	private static final int THREAD_POOL_SIZE = 3; // assets, asset pairs, tickers
 
 	private final IKrakenPublic krakenCaller;
 
-	PublicService() {
+	ServicePublic() {
 		super();
 		krakenCaller = KrakenFactory.getPublicCaller();
 	}
@@ -45,9 +45,9 @@ class PublicService extends AbstractCryptoService implements ICryptoService {
 		// Schedule jobs
 		long nextMidnightDelay = getNextMidnightDelay();
 		ScheduledExecutorService executorService = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
-		executorService.scheduleAtFixedRate(this::downloadAssets, nextMidnightDelay, config.getCallAssetsSecondsFrequency(), TimeUnit.SECONDS);
-		executorService.scheduleAtFixedRate(this::downloadAssetPairs, nextMidnightDelay, config.getCallAssetPairsSecondsFrequency(), TimeUnit.SECONDS);
-		executorService.scheduleAtFixedRate(this::downloadTickers, 2, config.getCallTickersSecondsFrequency(), TimeUnit.SECONDS);
+		executorService.scheduleAtFixedRate(this::downloadAssets, nextMidnightDelay, configPublic.getCallAssetsSecondsFrequency(), TimeUnit.SECONDS);
+		executorService.scheduleAtFixedRate(this::downloadAssetPairs, nextMidnightDelay, configPublic.getCallAssetPairsSecondsFrequency(), TimeUnit.SECONDS);
+		executorService.scheduleAtFixedRate(this::downloadTickers, 2, configPublic.getCallTickersSecondsFrequency(), TimeUnit.SECONDS);
 
 		while(true) {
 			try {
@@ -58,7 +58,6 @@ class PublicService extends AbstractCryptoService implements ICryptoService {
 				throw new TechnicalException(e, "Interrupt received, stop cycle");
 			}
 		}
-
 	}
 
 	private long getNextMidnightDelay() {
@@ -71,7 +70,7 @@ class PublicService extends AbstractCryptoService implements ICryptoService {
 		try {
 			long callTime = System.currentTimeMillis();
 			List<Asset> assets = krakenCaller.getAssets();
-			boolean changed = model.setNewAssets(assets, callTime);
+			boolean changed = dataModel.setNewAssets(assets, callTime);
 			logger.info("%d assets downloaded --> %s", assets.size(), (changed ? "data changed (new valid startTime=" + callTime + ")" : "no changes"));
 			
 		} catch (Exception ex) {
@@ -83,7 +82,7 @@ class PublicService extends AbstractCryptoService implements ICryptoService {
 		try {
 			long callTime = System.currentTimeMillis();
 			List<AssetPair> assetPairs = krakenCaller.getAssetPairs();
-			boolean changed = model.setNewAssetPairs(assetPairs, callTime);
+			boolean changed = dataModel.setNewAssetPairs(assetPairs, callTime);
 			logger.info("%d asset pairs downloaded --> %s", assetPairs.size(), (changed ? "data changed (new valid startTime is " + callTime + ")" : "no changes"));
 
 		} catch (Exception ex) {
@@ -93,10 +92,10 @@ class PublicService extends AbstractCryptoService implements ICryptoService {
 
 	private void downloadTickers() {
 		try {
-			List<String> assetPairNames = model.getAssetPairNames(true);
+			List<String> assetPairNames = dataModel.getAssetPairNames(true);
 			long callTime = System.currentTimeMillis();
 			List<Ticker> tickers = krakenCaller.getTickers(assetPairNames);
-			model.insertTickers(tickers, callTime);
+			dataModel.insertTickers(tickers, callTime);
 			logger.info("%d tickers downloaded", tickers.size());
 
 		} catch (Exception ex) {

@@ -22,8 +22,14 @@ public abstract class AbstractConfig {
 	private static final String COMMENT_START = "#";
 
 
-	protected AbstractConfig() {
+	protected AbstractConfig(String configPath) {
 		this.configMap = Collections.synchronizedMap(new HashMap<>());
+
+		try {
+			loadConfigFile(configPath);
+		} catch (IOException e) {
+			throw new RuntimeException(String.format("Unable to init config from file \"%s\"", configPath), e);
+		}
 	}
 
 	protected void loadConfigFile(String configFilePath) throws IOException {

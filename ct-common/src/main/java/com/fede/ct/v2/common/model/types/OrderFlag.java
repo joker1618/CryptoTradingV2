@@ -31,7 +31,7 @@ public enum OrderFlag {
 
 	public static OrderFlag getByLabel(String label) {
 		return Arrays.stream(values())
-				   .filter(at -> at.label.equals(label))
+				   .filter(at -> at.label.equals(label.trim()))
 				   .findAny()
 				   .orElse(null);
 	}

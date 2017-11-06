@@ -26,14 +26,12 @@ abstract class AbstractDbDao {
 	}
 
 	protected synchronized int performUpdate(String query, Object... params) {
-		String finalQuery = String.format(query, params);
-		try (PreparedStatement ps = connection.prepareStatement(finalQuery)){
+		try (PreparedStatement ps = createPreparedStatement(query, params)){
 			int num = ps.executeUpdate();
-			logger.config("Executed update for [%s]: %d rows altered", finalQuery, num);
+			logger.config("Executed update for [%s]: %d rows altered", query, num);
 			return num;
-
 		} catch (SQLException e) {
-			throw new TechnicalException(e, "Error performing update [%s]", finalQuery);
+			throw new TechnicalException(e, "Error performing update [query=%s, params=%s]", query, Arrays.toString(params));
 		}
 	}
 
@@ -67,8 +65,20 @@ abstract class AbstractDbDao {
 		return ps;
 	}
 
+	protected String toJdbcString(String str) {
+		if(str == null)	return null;
+		return String.format("\'%s\'", str);
+	}
+	protected String toJdbcString(Integer num) {
+		if(num == null)	return null;
+		return String.format("%d", num);
+	}
+	protected String toJdbcString(Long num) {
+		if(num == null)	return null;
+		return String.format("%d", num);
+	}
 	protected String toJdbcString(BigDecimal bigDecimal) {
-		if(bigDecimal == null)	return "-";
+		if(bigDecimal == null)	return null;
 		return OutFormat.getEnglishFormat().format(bigDecimal);
 	}
 }
