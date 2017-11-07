@@ -1,8 +1,5 @@
 package com.fede.ct.v2.common.config._public;
 
-import java.nio.file.Path;
-import java.util.logging.Level;
-
 /**
  * Created by f.barbano on 02/11/2017.
  */

@@ -1,18 +1,12 @@
 package com.fede.ct.v2.kraken.impl;
 
 import com.fede.ct.v2.common.model._private.OrderInfo;
-import com.fede.ct.v2.common.model._public.Asset;
-import com.fede.ct.v2.common.model._public.AssetPair;
-import com.fede.ct.v2.common.model._public.Ticker;
-import com.fede.ct.v2.common.util.StreamUtil;
 import com.fede.ct.v2.kraken.IKrakenPrivate;
-import com.fede.ct.v2.kraken.IKrakenPublic;
 import com.fede.ct.v2.kraken.exception.KrakenCallError;
 import com.fede.ct.v2.kraken.exception.KrakenException;
 import com.fede.ct.v2.kraken.impl.api.KrakenApi;
 import com.fede.ct.v2.kraken.impl.api.KrakenMethod;
 
-import java.util.Collection;
 import java.util.List;
 
 /**

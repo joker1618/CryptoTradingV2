@@ -1,8 +1,8 @@
 package com.fede.ct.v2.launcher.main;
 
 import com.fede.ct.v2.common.config._public.ConfigPrivate;
-import com.fede.ct.v2.common.config._public.IConfigPublic;
 import com.fede.ct.v2.common.config._public.ConfigPublic;
+import com.fede.ct.v2.common.config._public.IConfigPublic;
 import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.logger.LogFormatter;
 import com.fede.ct.v2.common.logger.LogService;

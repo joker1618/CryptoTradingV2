@@ -5,26 +5,18 @@ import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.logger.LogService;
 import com.fede.ct.v2.common.logger.SimpleLog;
 import com.fede.ct.v2.common.model._private.OrderInfo;
-import com.fede.ct.v2.common.model._public.Asset;
-import com.fede.ct.v2.common.model._public.AssetPair;
-import com.fede.ct.v2.common.model._public.Ticker;
-import com.fede.ct.v2.common.util.Converter;
 import com.fede.ct.v2.datalayer.IContextModel;
 import com.fede.ct.v2.datalayer.impl.ModelFactory;
 import com.fede.ct.v2.kraken.IKrakenPrivate;
 import com.fede.ct.v2.kraken.impl.KrakenFactory;
 import com.fede.ct.v2.service.ICryptoService;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by f.barbano on 04/11/2017.
@@ -33,7 +25,7 @@ class ServicePrivate extends AbstractCryptoService implements ICryptoService {
 
 	private static final SimpleLog logger = LogService.getLogger(ServicePrivate.class);
 	private static final int THREAD_POOL_SIZE = 1; // open orders, closed orders
-	private static final int AUTOSTOP_COUNTER_SIZE = 2; // open orders, closed orders
+	private static final int AUTOSTOP_COUNTER_SIZE = 5; // open orders, closed orders
 
 	private final IKrakenPrivate privateCaller;
 	private final IConfigPrivate configPrivate;
@@ -80,7 +72,7 @@ class ServicePrivate extends AbstractCryptoService implements ICryptoService {
 				dataModel.updateOrders(orders, contextModel.getUserId());
 				logger.info("Orders downloaded: %d open, %d closed", openOrders.size(), closedOrders.size());
 
-				manageAutostop(openOrders.size());
+				manageAutoStop(openOrders.size());
 
 			} catch (Exception ex) {
 				logger.error(ex, "Exception caught while downloading open/closed orders");
@@ -88,10 +80,11 @@ class ServicePrivate extends AbstractCryptoService implements ICryptoService {
 		}
 	}
 
-	private void manageAutostop(int openOrderSize) {
+	private void manageAutoStop(int openOrderSize) {
 		if(openOrderSize == 0) {
 			if(autoStopCounter.decrementAndGet() == 0) {
 				contextModel.setDownloadOrdersEnabled(false);
+				autoStopCounter.set(AUTOSTOP_COUNTER_SIZE);
 				logger.info("Stop downloading open/closed orders: open orders not found for last %d calls", AUTOSTOP_COUNTER_SIZE);
 			}
 		} else {

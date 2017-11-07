@@ -1,6 +1,5 @@
 package com.fede.ct.v2.service.impl;
 
-import com.fede.ct.v2.common.config._public.ConfigPrivate;
 import com.fede.ct.v2.common.config._public.IConfigPrivate;
 import com.fede.ct.v2.service.ICryptoService;
 
