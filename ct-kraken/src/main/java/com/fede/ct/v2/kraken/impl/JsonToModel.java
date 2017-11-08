@@ -9,6 +9,7 @@ import com.fede.ct.v2.common.model._public.Ticker;
 import com.fede.ct.v2.common.model._public.Ticker.TickerPrice;
 import com.fede.ct.v2.common.model._public.Ticker.TickerVolume;
 import com.fede.ct.v2.common.model._public.Ticker.TickerWholePrice;
+import com.fede.ct.v2.common.model._trading.AddOrderOut;
 import com.fede.ct.v2.common.model.types.*;
 import com.fede.ct.v2.common.util.Converter;
 import com.fede.ct.v2.common.util.StrUtil;
@@ -123,10 +124,16 @@ class JsonToModel {
 		return parseOrderInfoSet(result.getJsonObject("closed").entrySet());
 	}
 
-//	public List<OrderInfo> parseOrdersInfo() {
-//		return parseOrderInfoSet(result.entrySet());
-//	}
-
+	public AddOrderOut parseOrderOut() {
+		AddOrderOut out = new AddOrderOut();
+		JsonObject jdescr = result.getJsonObject("descr");
+		if(jdescr != null) {
+			out.setOrderDescr(getString(jdescr, "order"));
+			out.setCloseDescr(getString(jdescr, "close"));
+		}
+		out.setTxIDs(getArrayString(jdescr, "txid"));
+		return out;
+	}
 
 
 

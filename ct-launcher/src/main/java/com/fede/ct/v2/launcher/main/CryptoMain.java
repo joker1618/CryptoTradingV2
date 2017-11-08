@@ -2,6 +2,7 @@ package com.fede.ct.v2.launcher.main;
 
 import com.fede.ct.v2.common.config._public.ConfigPrivate;
 import com.fede.ct.v2.common.config._public.ConfigPublic;
+import com.fede.ct.v2.common.config._public.ConfigStrategy;
 import com.fede.ct.v2.common.config._public.IConfigPublic;
 import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.logger.LogFormatter;
@@ -26,14 +27,12 @@ import static com.fede.ct.v2.common.logger.LogService.LogServiceConfig;
 public final class CryptoMain {
 
 	private static final SimpleLog logger = LogService.getLogger(CryptoMain.class);
-	// todo remove
-	private static final String PRIVATE_CONFIG_PATH = "config/privatePianta.properties";
 
 	private static final IConfigPublic configPublic = ConfigPublic.getUniqueInstance();
 
 	private enum EngineTypology { PUBLIC, PRIVATE, STRATEGY }
 
-	public static void main(String[] args) {
+	public static void main(String[] args) {       	
 		long startMain = System.currentTimeMillis();
 
 		// check user input
@@ -49,8 +48,8 @@ public final class CryptoMain {
 
 		switch (runTypology) {
 			case PUBLIC:	service = CryptoServiceFactory.getServicePublic(); break;
-			case PRIVATE:   service = CryptoServiceFactory.getServicePrivate(new ConfigPrivate(PRIVATE_CONFIG_PATH)); break;
-			case STRATEGY:
+			case PRIVATE:   service = CryptoServiceFactory.getServicePrivate(new ConfigPrivate(args[1])); break;
+			case STRATEGY:  service = CryptoServiceFactory.getServiceStrategy(new ConfigPrivate(args[1]), new ConfigStrategy(args[2])); break;
 			default:
 				throw new TechnicalException("Service not yet implemented for run typology = %s", runTypology);
 		}
@@ -62,24 +61,26 @@ public final class CryptoMain {
 
 	private static EngineTypology checkInputArgs(String[] args) {
 		EngineTypology toRun = EngineTypology.PUBLIC;
-
-		boolean showUsage = true;
-		if(args.length == 1) {
-			try {
-				toRun = EngineTypology.valueOf(args[0].toUpperCase());
-				showUsage = false;
-			} catch (IllegalArgumentException ex) {
-			}
-		}
-
-		if(showUsage) {
-			String jarName = CryptoMain.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-			String usage = String.format("USAGE:\njava -jar %s [PUBLIC|PRIVATE|STRATEGY]\n* default = PUBLIC", jarName);
-			System.out.println(usage);
-			System.exit(1);
-		}
-
+		if(args.length > 0)		toRun = EngineTypology.valueOf(args[0].toUpperCase());
 		return toRun;
+//
+//		boolean showUsage = true;
+//		if(args.length == 1) {
+//			try {
+//				toRun = EngineTypology.valueOf(args[0].toUpperCase());
+//				showUsage = false;
+//			} catch (IllegalArgumentException ex) {
+//			}
+//		}
+//
+//		if(showUsage) {
+//			String jarName = CryptoMain.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+//			String usage = String.format("USAGE:\njava -jar %s [PUBLIC|PRIVATE|STRATEGY]\n* default = PUBLIC", jarName);
+//			System.out.println(usage);
+//			System.exit(1);
+//		}
+//
+//		return toRun;
 	}
 
 	private static void initLogger(EngineTypology runTypology) {

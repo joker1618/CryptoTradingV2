@@ -1,6 +1,8 @@
 package com.fede.ct.v2.dao.impl;
 
 import com.fede.ct.v2.common.exception.TechnicalException;
+import com.fede.ct.v2.common.logger.LogService;
+import com.fede.ct.v2.common.logger.SimpleLog;
 import com.fede.ct.v2.dao.IUserIdDao;
 import org.apache.commons.lang3.StringUtils;
 
@@ -13,6 +15,8 @@ import java.sql.SQLException;
  * Created by f.barbano on 06/11/2017.
  */
 public class UserIdDbDao extends AbstractDbDao implements IUserIdDao {
+
+	private static final SimpleLog logger = LogService.getLogger(UserIdDbDao.class);
 
 	private static final String SELECT_USER_ID = "SELECT USER_ID FROM CT_USERS WHERE API_KEY = ? AND API_SECRET = ?";
 	private static final String GET_NEXT_FREE_USER_ID = "SELECT MAX(USER_ID) AS NEXT_ID FROM CT_USERS";

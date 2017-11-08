@@ -1,6 +1,7 @@
 package com.fede.ct.v2.common.config;
 
 import com.fede.ct.v2.common.logger.LogService;
+import com.fede.ct.v2.common.util.StrUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
@@ -167,6 +168,9 @@ public abstract class AbstractConfig {
 	}
 	protected boolean getBoolean(String key) {
 		return Boolean.valueOf(getString(key));
+	}
+	protected List<String> getCommaSeparatedList(String key) {
+		return StrUtil.splitFieldsList(getString(key), ",", true);
 	}
 
 	protected Level getLoggerLevel(String key) {

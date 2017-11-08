@@ -4,6 +4,7 @@ import com.fede.ct.v2.common.model._private.OrderInfo;
 import com.fede.ct.v2.common.model._public.Asset;
 import com.fede.ct.v2.common.model._public.AssetPair;
 import com.fede.ct.v2.common.model._public.Ticker;
+import com.fede.ct.v2.common.model.types.OrderStatus;
 
 import java.util.List;
 
@@ -23,4 +24,10 @@ public interface IDataModel {
 
 	void updateOrders(List<OrderInfo> orders, int userId);
 
+
+	// Trading methods
+	Ticker retrieveAskPriceAverageLast24(String pairName);
+
+	List<String> getOpenOrderTxIds(int userId);
+	List<OrderInfo> getOrderStatus(int userId, List<String> orderTxIds);
 }

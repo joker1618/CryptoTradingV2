@@ -28,7 +28,7 @@ abstract class AbstractDbDao {
 	protected synchronized int performUpdate(String query, Object... params) {
 		try (PreparedStatement ps = createPreparedStatement(query, params)){
 			int num = ps.executeUpdate();
-			logger.config("Executed update for [%s]: %d rows altered", query, num);
+			logger.fine("Executed update for [%s]: %d rows altered", query, num);
 			return num;
 		} catch (SQLException e) {
 			throw new TechnicalException(e, "Error performing update [query=%s, params=%s]", query, Arrays.toString(params));
@@ -41,7 +41,7 @@ abstract class AbstractDbDao {
 				st.addBatch(query);
 			}
 			int[] res = st.executeBatch();
-			logger.config("Executed update batch for [%s]", Arrays.toString(queries));
+			logger.fine("Executed update batch for [%s]", Arrays.toString(queries));
 			return res;
 
 		} catch (SQLException e) {

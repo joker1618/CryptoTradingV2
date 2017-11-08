@@ -4,6 +4,7 @@ import com.fede.ct.v2.common.model._private.OrderInfo;
 import com.fede.ct.v2.common.model._public.Asset;
 import com.fede.ct.v2.common.model._public.AssetPair;
 import com.fede.ct.v2.common.model._public.Ticker;
+import com.fede.ct.v2.common.model.types.OrderStatus;
 import com.fede.ct.v2.dao.IAssetPairsDao;
 import com.fede.ct.v2.dao.IAssetsDao;
 import com.fede.ct.v2.dao.IOrdersDao;
@@ -75,7 +76,22 @@ class DataModelImpl implements IDataModel {
 
 	@Override
 	public void updateOrders(List<OrderInfo> orders, int userId) {
-		ordersDao.updateOrders(orders, userId);
+		ordersDao.updateOrders(userId, orders);
+	}
+
+	@Override
+	public Ticker retrieveAskPriceAverageLast24(String pairName) {
+		return tickersDao.selectAskPriceAndAverageLast24(pairName);
+	}
+
+	@Override
+	public List<String> getOpenOrderTxIds(int userId) {
+		return ordersDao.getOpenOrders(userId);
+	}
+
+	@Override
+	public List<OrderInfo> getOrderStatus(int userId, List<String> orderTxIds) {
+		return ordersDao.getOrdersStatus(userId, orderTxIds);
 	}
 
 
