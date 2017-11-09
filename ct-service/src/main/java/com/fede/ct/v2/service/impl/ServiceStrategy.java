@@ -14,7 +14,6 @@ import com.fede.ct.v2.common.model.types.OrderStatus;
 import com.fede.ct.v2.datalayer.IContextModel;
 import com.fede.ct.v2.datalayer.impl.ModelFactory;
 import com.fede.ct.v2.kraken.IKrakenStrategy;
-import com.fede.ct.v2.kraken.exception.KrakenCallError;
 import com.fede.ct.v2.kraken.exception.KrakenException;
 import com.fede.ct.v2.kraken.impl.KrakenFactory;
 import com.fede.ct.v2.service.ICryptoService;
@@ -23,8 +22,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by f.barbano on 07/11/2017.

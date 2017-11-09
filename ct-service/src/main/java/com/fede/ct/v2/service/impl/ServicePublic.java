@@ -49,15 +49,15 @@ class ServicePublic extends AbstractCryptoService implements ICryptoService {
 		executorService.scheduleAtFixedRate(this::downloadAssetPairs, nextMidnightDelay, configPublic.getCallAssetPairsSecondsFrequency(), TimeUnit.SECONDS);
 		executorService.scheduleAtFixedRate(this::downloadTickers, 2, configPublic.getCallTickersSecondsFrequency(), TimeUnit.SECONDS);
 
-		while(true) {
-			try {
-				Thread.sleep(60000);
-			} catch (InterruptedException e) {
-				executorService.shutdownNow();
-				logger.warning("Interrupt received, stop cycle");
-				throw new TechnicalException(e, "Interrupt received, stop cycle");
-			}
-		}
+//		while(true) {
+//			try {
+//				Thread.sleep(60000);
+//			} catch (InterruptedException e) {
+//				executorService.shutdownNow();
+//				logger.warning("Interrupt received, stop cycle");
+//				throw new TechnicalException(e, "Interrupt received, stop cycle");
+//			}
+//		}
 	}
 
 	private long getNextMidnightDelay() {

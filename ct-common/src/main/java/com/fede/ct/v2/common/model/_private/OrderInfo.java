@@ -25,25 +25,25 @@ public class OrderInfo {
 	// reason = additional info on status (if any)
 	private String reason;
 	//	opentm = unix timestamp of when order was placed
-	private Long openTimestamp;
+	private Long openTm;
 	// closetm = unix timestamp of when order was closed
-	private Long closeTimestamp;
+	private Long closeTm;
 	//	starttm = unix timestamp of order start time (or 0 if not set)
-	private Long startTimestamp;
+	private Long startTm;
 	//	expiretm = unix timestamp of order end time (or 0 if not set)
-	private Long expireTimestamp;
+	private Long expireTm;
 	//	descr = order description info
 	private OrderDescr descr;
 	//	vol = volume of order (base currency unless viqc set in oflags)
-	private BigDecimal volume;
+	private BigDecimal vol;
 	//	vol_exec = volume executed (base currency unless viqc set in oflags)
-	private BigDecimal volumeExecuted;
+	private BigDecimal volExec;
 	//	cost = total cost (quote currency unless unless viqc set in oflags)
 	private BigDecimal cost;
 	//	fee = total fee (quote currency)
 	private BigDecimal fee;
 	//	price = average price (quote currency unless viqc set in oflags)
-	private BigDecimal averagePrice;
+	private BigDecimal avgPrice;
 	//	stopprice = stop price (quote currency, for trailing stops)
 	private BigDecimal stopPrice;
 	//	limitprice = triggered limit price (quote currency, when limit based order type triggered)
@@ -59,9 +59,9 @@ public class OrderInfo {
 //		fcib = prefer fee in base currency (default if selling)
 //		fciq = prefer fee in quote currency (default if buying)
 //		nompp = no market price protection
-	private List<OrderFlag> flags;
+	private List<OrderFlag> oflags;
 	//	trades = array of trade ids related to order (if trades info requested and data available)
-	private List<String> trades;
+	private List<String> tradesId;
 
 	@Override
 	public boolean equals(Object o) {
@@ -108,29 +108,29 @@ public class OrderInfo {
 	public void setReason(String reason) {
 		this.reason = reason;
 	}
-	public Long getOpenTimestamp() {
-		return openTimestamp;
+	public Long getOpenTm() {
+		return openTm;
 	}
-	public void setOpenTimestamp(Long openTimestamp) {
-		this.openTimestamp = openTimestamp;
+	public void setOpenTm(Long openTm) {
+		this.openTm = openTm;
 	}
-	public Long getCloseTimestamp() {
-		return closeTimestamp;
+	public Long getCloseTm() {
+		return closeTm;
 	}
-	public void setCloseTimestamp(Long closeTimestamp) {
-		this.closeTimestamp = closeTimestamp;
+	public void setCloseTm(Long closeTm) {
+		this.closeTm = closeTm;
 	}
-	public Long getStartTimestamp() {
-		return startTimestamp;
+	public Long getStartTm() {
+		return startTm;
 	}
-	public void setStartTimestamp(Long startTimestamp) {
-		this.startTimestamp = startTimestamp;
+	public void setStartTm(Long startTm) {
+		this.startTm = startTm;
 	}
-	public Long getExpireTimestamp() {
-		return expireTimestamp;
+	public Long getExpireTm() {
+		return expireTm;
 	}
-	public void setExpireTimestamp(Long expireTimestamp) {
-		this.expireTimestamp = expireTimestamp;
+	public void setExpireTm(Long expireTm) {
+		this.expireTm = expireTm;
 	}
 	public OrderDescr getDescr() {
 		return descr;
@@ -138,17 +138,17 @@ public class OrderInfo {
 	public void setDescr(OrderDescr descr) {
 		this.descr = descr;
 	}
-	public BigDecimal getVolume() {
-		return volume;
+	public BigDecimal getVol() {
+		return vol;
 	}
-	public void setVolume(BigDecimal volume) {
-		this.volume = volume;
+	public void setVol(BigDecimal vol) {
+		this.vol = vol;
 	}
-	public BigDecimal getVolumeExecuted() {
-		return volumeExecuted;
+	public BigDecimal getVolExec() {
+		return volExec;
 	}
-	public void setVolumeExecuted(BigDecimal volumeExecuted) {
-		this.volumeExecuted = volumeExecuted;
+	public void setVolExec(BigDecimal volExec) {
+		this.volExec = volExec;
 	}
 	public BigDecimal getCost() {
 		return cost;
@@ -162,11 +162,11 @@ public class OrderInfo {
 	public void setFee(BigDecimal fee) {
 		this.fee = fee;
 	}
-	public BigDecimal getAveragePrice() {
-		return averagePrice;
+	public BigDecimal getAvgPrice() {
+		return avgPrice;
 	}
-	public void setAveragePrice(BigDecimal averagePrice) {
-		this.averagePrice = averagePrice;
+	public void setAvgPrice(BigDecimal avgPrice) {
+		this.avgPrice = avgPrice;
 	}
 	public BigDecimal getStopPrice() {
 		return stopPrice;
@@ -186,17 +186,17 @@ public class OrderInfo {
 	public void setMisc(List<OrderMisc> misc) {
 		this.misc = misc;
 	}
-	public List<OrderFlag> getFlags() {
-		return flags;
+	public List<OrderFlag> getOflags() {
+		return oflags;
 	}
-	public void setFlags(List<OrderFlag> flags) {
-		this.flags = flags;
+	public void setOflags(List<OrderFlag> oflags) {
+		this.oflags = oflags;
 	}
-	public List<String> getTrades() {
-		return trades;
+	public List<String> getTradesId() {
+		return tradesId;
 	}
-	public void setTrades(List<String> trades) {
-		this.trades = trades;
+	public void setTradesId(List<String> tradesId) {
+		this.tradesId = tradesId;
 	}
 
 	@Override

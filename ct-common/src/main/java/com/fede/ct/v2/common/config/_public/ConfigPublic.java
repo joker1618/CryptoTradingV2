@@ -18,8 +18,11 @@ public class ConfigPublic extends AbstractConfig implements IConfigPublic {
 	}
 
 
+//	private ConfigPublic() {
+//		super("config/publicConfig.properties");
+//	}
 	private ConfigPublic() {
-		super("config/publicConfig.properties");
+		super("C:\\Users\\f.barbano\\IdeaProjects\\CryptoTrading_V2\\config\\publicConfig.properties");
 	}
 
 	@Override

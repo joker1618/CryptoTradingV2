@@ -122,5 +122,16 @@ public class LogService {
 		protected LogLevel(String name, int value) {
 			super(name, value);
 		}
+
+		public static synchronized Level parse(String name) {
+			if(ERROR.getName().equalsIgnoreCase(name)) 	return ERROR;
+			if(DEBUG.getName().equalsIgnoreCase(name)) 	return DEBUG;
+
+			try {
+				return Level.parse(name);
+			} catch (IllegalArgumentException ex) {
+				return ALL;
+			}
+		}
 	}
 }

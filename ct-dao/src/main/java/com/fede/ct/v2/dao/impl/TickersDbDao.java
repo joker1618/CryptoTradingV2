@@ -2,7 +2,9 @@ package com.fede.ct.v2.dao.impl;
 
 import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.model._public.Ticker;
-import com.fede.ct.v2.common.model._public.Ticker.*;
+import com.fede.ct.v2.common.model._public.Ticker.TickerPrice;
+import com.fede.ct.v2.common.model._public.Ticker.TickerVolume;
+import com.fede.ct.v2.common.model._public.Ticker.TickerWholePrice;
 import com.fede.ct.v2.common.util.OutFormat;
 import com.fede.ct.v2.common.util.StreamUtil;
 import com.fede.ct.v2.dao.ITickersDao;
@@ -12,9 +14,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Created by f.barbano on 05/11/2017.

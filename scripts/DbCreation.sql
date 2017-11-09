@@ -108,12 +108,12 @@ CREATE TABLE IF NOT EXISTS ORDERS (
     VOL_EXEC        DECIMAL(30,11),
     COST            DECIMAL(30,11),
     FEE             DECIMAL(30,11),
-    AVERAGE_PRICE   DECIMAL(30,11),
+    AVG_PRICE       DECIMAL(30,11),
     STOP_PRICE      DECIMAL(30,11),
     LIMIT_PRICE     DECIMAL(30,11),
     MISC            VARCHAR(50),
     OFLAGS          VARCHAR(50),
-    TRADES_IDX      VARCHAR(200),
+    TRADES_ID       VARCHAR(200),
     DESCR_PAIR_NAME     VARCHAR(20),
     DESCR_ORDER_ACTION  ENUM('buy', 'sell'),
     DESCR_ORDER_TYPE    ENUM('market', 'limit', 'stop-loss', 'take-profit', 'stop-loss-profit', 'stop-loss-profit-limit', 'stop-loss-limit', 'take-profit-limit', 'trailing-stop', 'trailing-stop-limit', 'stop-loss-and-limit', 'settle-position'),
@@ -127,4 +127,15 @@ CREATE TABLE IF NOT EXISTS ORDERS (
 CREATE INDEX _ORDERS_IDX_1 ON ORDERS(ORDER_TX_ID, USER_ID);
 CREATE INDEX _ORDERS_IDX_2 ON ORDERS(STATUS);
 
+
+CREATE TABLE IF NOT EXISTS ACCOUNT_BALANCE (
+    USER_ID         INT NOT NULL,
+    CALL_TIME       BIGINT  NOT NULL,
+    ASSET_NAME      VARCHAR(10) NOT NULL,
+    ASSET_BALANCE   DECIMAL(22,12) NOT NULL,
+    VALID           ENUM('Y','N') NOT NULL,
+    PRIMARY KEY(USER_ID, CALL_TIME, ASSET_NAME, VALID)
+);
+CREATE INDEX _ORDERS_IDX_1 ON ORDERS(USER_ID, ASSET_NAME, VALID);
+CREATE INDEX _ORDERS_IDX_2 ON ORDERS(USER_ID, VALID);
 

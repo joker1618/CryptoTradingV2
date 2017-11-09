@@ -4,7 +4,6 @@ import com.fede.ct.v2.common.model._private.OrderInfo;
 import com.fede.ct.v2.common.model._public.Asset;
 import com.fede.ct.v2.common.model._public.AssetPair;
 import com.fede.ct.v2.common.model._public.Ticker;
-import com.fede.ct.v2.common.model.types.OrderStatus;
 
 import java.util.List;
 
