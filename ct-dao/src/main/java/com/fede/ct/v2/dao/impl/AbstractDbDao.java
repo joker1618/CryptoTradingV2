@@ -36,7 +36,7 @@ abstract class AbstractDbDao {
 	}
 
 	protected synchronized int[] performUpdateBatch(String... queries) {
-		try (Statement st = connection.createStatement()){
+		try (Statement st = connection.createStatement()) {
 			for(String query : queries) {
 				st.addBatch(query);
 			}

@@ -14,7 +14,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by f.barbano on 05/11/2017.
@@ -33,7 +33,7 @@ public class TickersDbDao extends AbstractDbDao implements ITickersDao {
 	}
 
 	@Override
-	public void insertTickers(Collection<Ticker> tickers, long callTime) {
+	public void insertTickers(List<Ticker> tickers, long callTime) {
 		String query = INSERT_NEW_PREFIX + StreamUtil.join(tickers, ",", t -> tickerToValues(callTime, t));
 		super.performUpdate(query);
 	}

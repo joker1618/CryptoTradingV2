@@ -2,7 +2,6 @@ package com.fede.ct.v2.dao;
 
 import com.fede.ct.v2.common.model._public.Asset;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -12,6 +11,6 @@ public interface IAssetsDao {
 
 	List<Asset> selectAssets();
 
-	void insertNewAssets(Collection<Asset> assets, long callTime);
+	void insertNewAssets(List<Asset> assets, long callTime);
 
 }

@@ -2,11 +2,12 @@ package com.fede.ct.v2.common.util;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 /**
  * Created by f.barbano on 06/11/2017.
  */
-public class Functions {
+public class Func {
 
 	private static final char[] hex = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
@@ -23,5 +24,11 @@ public class Functions {
 			sb.append(hex[b & 0x0F]);
 		}
 		return sb.toString();
+	}
+
+	public static <T> List<T> subList(List<T> source, int from, int to) {
+		if(source == null)	return null;
+		int end = to > source.size() ? source.size() : to;
+		return source.subList(from, end);
 	}
 }

@@ -1,6 +1,5 @@
 package com.fede.ct.v2.service.impl;
 
-import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.logger.LogService;
 import com.fede.ct.v2.common.logger.SimpleLog;
 import com.fede.ct.v2.common.model._public.Asset;
@@ -47,17 +46,8 @@ class ServicePublic extends AbstractCryptoService implements ICryptoService {
 		ScheduledExecutorService executorService = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
 		executorService.scheduleAtFixedRate(this::downloadAssets, nextMidnightDelay, configPublic.getCallAssetsSecondsFrequency(), TimeUnit.SECONDS);
 		executorService.scheduleAtFixedRate(this::downloadAssetPairs, nextMidnightDelay, configPublic.getCallAssetPairsSecondsFrequency(), TimeUnit.SECONDS);
-		executorService.scheduleAtFixedRate(this::downloadTickers, 2, configPublic.getCallTickersSecondsFrequency(), TimeUnit.SECONDS);
+		executorService.scheduleAtFixedRate(this::downloadTickers, 10, configPublic.getCallTickersSecondsFrequency(), TimeUnit.SECONDS);
 
-//		while(true) {
-//			try {
-//				Thread.sleep(60000);
-//			} catch (InterruptedException e) {
-//				executorService.shutdownNow();
-//				logger.warning("Interrupt received, stop cycle");
-//				throw new TechnicalException(e, "Interrupt received, stop cycle");
-//			}
-//		}
 	}
 
 	private long getNextMidnightDelay() {

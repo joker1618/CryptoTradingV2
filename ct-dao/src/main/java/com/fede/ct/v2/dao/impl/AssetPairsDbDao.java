@@ -3,6 +3,9 @@ package com.fede.ct.v2.dao.impl;
 import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.model._public.AssetPair;
 import com.fede.ct.v2.common.model._public.AssetPair.FeeSchedule;
+import com.fede.ct.v2.common.model._public.AssetPair.Leverage;
+import com.fede.ct.v2.common.model.types.FeeType;
+import com.fede.ct.v2.common.model.types.LeverageType;
 import com.fede.ct.v2.common.util.StreamUtil;
 import com.fede.ct.v2.dao.IAssetPairsDao;
 import org.apache.commons.lang3.StringUtils;
@@ -77,7 +80,7 @@ public class AssetPairsDbDao extends AbstractDbDao implements IAssetPairsDao {
 	}
 
 	@Override
-	public void insertNewAssetPairs(Collection<AssetPair> assetPairs, long callTime) {
+	public void insertNewAssetPairs(List<AssetPair> assetPairs, long callTime) {
 		String qUpdate = String.format(UPDATE_EXPIRE_TIME, callTime);
 
 		AtomicLong nextId = new AtomicLong(getNextId());
@@ -158,11 +161,11 @@ public class AssetPairsDbDao extends AbstractDbDao implements IAssetPairsDao {
 			if(rs != null) {
 				while(rs.next()) {
 					long pairID = rs.getLong("PAIR_ID");
+					String feeType = rs.getString("FEE_TYPE");
 					int volume = rs.getInt("VOLUME");
 					BigDecimal percentFee = rs.getBigDecimal("PERCENT_FEE");
-					FeeSchedule fs = new FeeSchedule(volume, percentFee);
+					FeeSchedule fs = new FeeSchedule(FeeType.getByLabel(feeType), volume, percentFee);
 
-					String feeType = rs.getString("FEE_TYPE");
 					if(FEE_TYPE_FEES.equals(feeType)) {
 						assetPairs.get(pairID).getFees().add(fs);
 					} else {
@@ -189,12 +192,14 @@ public class AssetPairsDbDao extends AbstractDbDao implements IAssetPairsDao {
 			if(rs != null) {
 				while(rs.next()) {
 					long pairID = rs.getLong("PAIR_ID");
-					int volume = rs.getInt("LEVERAGE_VALUE");
+					int levValue = rs.getInt("LEVERAGE_VALUE");
 					String leverageType = rs.getString("LEVERAGE_TYPE");
+					LeverageType levType = LeverageType.getByLabel(leverageType);
+					Leverage leverage = new Leverage(levType, levValue);
 					if(LEVERAGE_TYPE_BUY.equals(leverageType)) {
-						assetPairs.get(pairID).getLeverageBuy().add(volume);
+						assetPairs.get(pairID).getLeverageBuy().add(leverage);
 					} else {
-						assetPairs.get(pairID).getLeverageSell().add(volume);
+						assetPairs.get(pairID).getLeverageSell().add(leverage);
 					}
 				}
 			}
@@ -241,14 +246,14 @@ public class AssetPairsDbDao extends AbstractDbDao implements IAssetPairsDao {
 	}
 	private String leverageToValues(Long pairID, AssetPair assetPair) {
 		StringBuilder sb = new StringBuilder();
-		for(Integer lev : assetPair.getLeverageBuy()) {
+		for(Leverage lev : assetPair.getLeverageBuy()) {
 			if(sb.length() > 0)		sb.append(",");
-			String val = String.format("(%d, '%s', %d)", pairID, LEVERAGE_TYPE_BUY, lev);
+			String val = String.format("(%d, '%s', %d)", pairID, LEVERAGE_TYPE_BUY, lev.getValue());
 			sb.append(val);
 		}
-		for(Integer lev : assetPair.getLeverageSell()) {
+		for(Leverage lev : assetPair.getLeverageSell()) {
 			if(sb.length() > 0)		sb.append(",");
-			String val = String.format("(%d, '%s', %d)", pairID, LEVERAGE_TYPE_SELL, lev);
+			String val = String.format("(%d, '%s', %d)", pairID, LEVERAGE_TYPE_SELL, lev.getValue());
 			sb.append(val);
 		}
 		return sb.toString();

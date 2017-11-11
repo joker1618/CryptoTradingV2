@@ -25,9 +25,9 @@ public class ModelFactory {
 		Connection conn = createConnection();
 
 		DataModelImpl model = new DataModelImpl();
-		model.setAssetsDao(new AssetsDbDao(conn));
-		model.setAssetPairsDao(new AssetPairsDbDao(conn));
-		model.setTickersDao(new TickersDbDao(conn));
+		model.setAssetsDao(new AssetsDbDao2(conn));
+		model.setAssetPairsDao(new AssetPairsDbDao2(conn));
+		model.setTickersDao(new TickersDbDao2(conn));
 		model.setOrdersDao(new OrdersDbDao(conn));
 		return model;
 	}

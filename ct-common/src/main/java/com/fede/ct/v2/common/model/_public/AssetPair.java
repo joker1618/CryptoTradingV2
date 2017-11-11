@@ -1,5 +1,8 @@
 package com.fede.ct.v2.common.model._public;
 
+import com.fede.ct.v2.common.model.types.FeeType;
+import com.fede.ct.v2.common.model.types.LeverageType;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +12,7 @@ import java.util.List;
  */
 public class AssetPair {
 
+	private Long pairId;
 	private String pairName;
 	private String altName;
 	private String aClassBase;
@@ -19,8 +23,8 @@ public class AssetPair {
 	private Integer pairDecimals;
 	private Integer lotDecimals;
 	private Integer lotMultiplier;
-	private List<Integer> leverageBuy;     	// es. "leverage_buy":[2,3]
-	private List<Integer> leverageSell;		// es. "leverage_sell":[2,3]
+	private List<Leverage> leverageBuy;     	// es. "leverage_buy":[2,3]
+	private List<Leverage> leverageSell;		// es. "leverage_sell":[2,3]
 	private List<FeeSchedule> fees;       	// es. "fees":[[0,0.26],[50000,0.24],[100000,0.22],...]
 	private List<FeeSchedule> feesMaker;   	// es. "fees_maker":[[0,0.16],[50000,0.14],[100000,0.12],...]
 	private String feeVolumeCurrency;
@@ -95,6 +99,12 @@ public class AssetPair {
 	}
 
 
+	public Long getPairId() {
+		return pairId;
+	}
+	public void setPairId(Long pairId) {
+		this.pairId = pairId;
+	}
 	public String getPairName() {
 		return pairName;
 	} 
@@ -155,16 +165,16 @@ public class AssetPair {
 	public void setLotMultiplier(Integer lotMultiplier) {
 		this.lotMultiplier = lotMultiplier;
 	} 
-	public List<Integer> getLeverageBuy() {
+	public List<Leverage> getLeverageBuy() {
 		return leverageBuy;
 	} 
-	public void setLeverageBuy(List<Integer> leverageBuy) {
+	public void setLeverageBuy(List<Leverage> leverageBuy) {
 		this.leverageBuy = leverageBuy;
 	} 
-	public List<Integer> getLeverageSell() {
+	public List<Leverage> getLeverageSell() {
 		return leverageSell;
 	} 
-	public void setLeverageSell(List<Integer> leverageSell) {
+	public void setLeverageSell(List<Leverage> leverageSell) {
 		this.leverageSell = leverageSell;
 	} 
 	public List<FeeSchedule> getFees() {
@@ -199,14 +209,35 @@ public class AssetPair {
 	}
 
 	public static class FeeSchedule {
+		private Long pairId;
+		private FeeType feeType;
 		private Integer volume;
 		private BigDecimal percentFee;
 
-		public FeeSchedule(Integer volume, BigDecimal percentFee) {
+
+		public FeeSchedule(FeeType feeType, Integer volume, BigDecimal percentFee) {
+			this(null, feeType, volume, percentFee);
+		}
+		public FeeSchedule(Long pairId, FeeType feeType, Integer volume, BigDecimal percentFee) {
+			this.pairId = pairId;
+			this.feeType = feeType;
 			this.volume = volume;
 			this.percentFee = percentFee;
 		}
 
+
+		public Long getPairId() {
+			return pairId;
+		}
+		public void setPairId(Long pairId) {
+			this.pairId = pairId;
+		}
+		public FeeType getFeeType() {
+			return feeType;
+		}
+		public void setFeeType(FeeType feeType) {
+			this.feeType = feeType;
+		}
 		public Integer getVolume() {
 			return volume;
 		}                                                              	
@@ -227,23 +258,71 @@ public class AssetPair {
 
 			FeeSchedule that = (FeeSchedule) o;
 
+			if (feeType != that.feeType) return false;
 			if (volume != null ? !volume.equals(that.volume) : that.volume != null) return false;
 			return percentFee != null ? percentFee.compareTo(that.percentFee) == 0 : that.percentFee == null;
 		}
 
 		@Override
 		public int hashCode() {
-			int result = volume != null ? volume.hashCode() : 0;
+			int result = feeType != null ? feeType.hashCode() : 0;
+			result = 31 * result + (volume != null ? volume.hashCode() : 0);
 			result = 31 * result + (percentFee != null ? Double.valueOf(percentFee.doubleValue()).hashCode() : 0);
 			return result;
 		}
 
+	}
+
+	public static class Leverage {
+		private Long pairId;
+		private LeverageType type;
+		private Integer value;
+
+		public Leverage(LeverageType type, Integer value) {
+			this(null, type, value);
+		}
+		public Leverage(Long pairId, LeverageType type, Integer value) {
+			this.pairId = pairId;
+			this.type = type;
+			this.value = value;
+		}
+
+
 		@Override
-		public String toString() {
-			return "FeeSchedule{" +
-					   "volume=" + volume +
-					   ", percentFee=" + percentFee +
-					   '}';
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (!(o instanceof Leverage)) return false;
+
+			Leverage leverage = (Leverage) o;
+
+			if (type != leverage.type) return false;
+			return value != null ? value.equals(leverage.value) : leverage.value == null;
+		}
+
+		@Override
+		public int hashCode() {
+			int result = type != null ? type.hashCode() : 0;
+			result = 31 * result + (value != null ? value.hashCode() : 0);
+			return result;
+		}
+
+		public Long getPairId() {
+			return pairId;
+		}
+		public void setPairId(Long pairId) {
+			this.pairId = pairId;
+		}
+		public LeverageType getType() {
+			return type;
+		}
+		public void setType(LeverageType type) {
+			this.type = type;
+		}
+		public Integer getValue() {
+			return value;
+		}
+		public void setValue(Integer value) {
+			this.value = value;
 		}
 	}
 }

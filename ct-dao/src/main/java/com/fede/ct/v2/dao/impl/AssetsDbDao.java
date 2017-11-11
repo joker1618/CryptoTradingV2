@@ -10,7 +10,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -52,7 +51,7 @@ public class AssetsDbDao extends AbstractDbDao implements IAssetsDao {
 	}
 
 	@Override
-	public void insertNewAssets(Collection<Asset> assets, long callTime) {
+	public void insertNewAssets(List<Asset> assets, long callTime) {
 		String qUpdate = String.format(UPDATE_EXPIRE_TIME, callTime);
 		String qInsert = INSERT_NEW_PREFIX + StreamUtil.join(assets, ",", a -> assetToValues(a, callTime));
 		super.performUpdateBatch(qUpdate, qInsert);

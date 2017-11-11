@@ -5,6 +5,7 @@ import com.fede.ct.v2.common.model._private.OrderInfo.OrderDescr;
 import com.fede.ct.v2.common.model._public.Asset;
 import com.fede.ct.v2.common.model._public.AssetPair;
 import com.fede.ct.v2.common.model._public.AssetPair.FeeSchedule;
+import com.fede.ct.v2.common.model._public.AssetPair.Leverage;
 import com.fede.ct.v2.common.model._public.Ticker;
 import com.fede.ct.v2.common.model._public.Ticker.TickerPrice;
 import com.fede.ct.v2.common.model._public.Ticker.TickerVolume;
@@ -80,8 +81,8 @@ class JsonToModel {
 			pair.setPairDecimals(getInt(jsonPair, "pair_decimals"));
 			pair.setLotDecimals(getInt(jsonPair, "lot_decimals"));
 			pair.setLotMultiplier(getInt(jsonPair, "lot_multiplier"));
-			pair.setLeverageBuy(getArrayInt(jsonPair, "leverage_buy"));
-			pair.setLeverageSell(getArrayInt(jsonPair, "leverage_sell"));
+			pair.setLeverageBuy(parseJsonLeverageArray(jsonPair, "leverage_buy", LeverageType.BUY));
+			pair.setLeverageSell(parseJsonLeverageArray(jsonPair, "leverage_sell", LeverageType.SELL));
 			pair.setFees(parseJsonFeeScheduleArray(jsonPair, "fees"));
 			pair.setFeesMaker(parseJsonFeeScheduleArray(jsonPair, "fees_maker"));
 			pair.setFeeVolumeCurrency(getString(jsonPair, "fee_volume_currency"));
@@ -137,20 +138,27 @@ class JsonToModel {
 
 
 
+	private List<Leverage> parseJsonLeverageArray(JsonObject jsonPair, String key, LeverageType levType) {
+		List<Leverage> toRet = new ArrayList<>();
+		List<Integer> levs = getArrayInt(jsonPair, key);
+		return StreamUtil.map(levs, i -> new Leverage(levType, i));
+	}
+	
 	private List<FeeSchedule> parseJsonFeeScheduleArray(JsonObject jsonObj, String key) {
+		FeeType feeType = FeeType.getByLabel(key);
 		List<FeeSchedule> toRet = new ArrayList<>();
 		JsonArray jsonArray = jsonObj.getJsonArray(key);
 		if(jsonArray != null) {
 			jsonArray.forEach(jv -> {
 				int vol = jv.asJsonArray().getInt(0);
 				BigDecimal perc = jv.asJsonArray().getJsonNumber(1).bigDecimalValue();
-				toRet.add(new FeeSchedule(vol, perc));
+				toRet.add(new FeeSchedule(feeType, vol, perc));
 			});
 		}
 		toRet.sort(Comparator.comparingInt(FeeSchedule::getVolume));
 		return toRet;
 	}
-	
+
 	private TickerPrice parseTickerPrice(JsonObject jsonObj, String key) {
 		List<String> values = getArrayString(jsonObj, key);
 		TickerPrice tp = new TickerPrice();

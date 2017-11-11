@@ -2,7 +2,6 @@ package com.fede.ct.v2.dao;
 
 import com.fede.ct.v2.common.model._public.AssetPair;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -10,9 +9,9 @@ import java.util.List;
  */
 public interface IAssetPairsDao {
 
-	List<AssetPair> selectAssetPairs(boolean discardDotD);
-	List<String> selectAssetPairNames(boolean discardDotD);
+	List<AssetPair> selectAssetPairs(boolean onlyTradables);
+	List<String> selectAssetPairNames(boolean onlyTradables);
 
-	void insertNewAssetPairs(Collection<AssetPair> assetPairs, long callTime);
+	void insertNewAssetPairs(List<AssetPair> assetPairs, long callTime);
 
 }

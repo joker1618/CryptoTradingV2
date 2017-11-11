@@ -2,14 +2,11 @@ package com.fede.ct.v2.dao.impl;
 
 import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.model._private.OrderInfo;
-import com.fede.ct.v2.common.model._private.OrderInfo.OrderDescr;
 import com.fede.ct.v2.common.model.types.OrderFlag;
 import com.fede.ct.v2.common.model.types.OrderMisc;
 import com.fede.ct.v2.common.model.types.OrderStatus;
-import com.fede.ct.v2.common.util.StrUtil;
 import com.fede.ct.v2.common.util.StreamUtil;
 import com.fede.ct.v2.dao.IOrdersDao;
-import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
