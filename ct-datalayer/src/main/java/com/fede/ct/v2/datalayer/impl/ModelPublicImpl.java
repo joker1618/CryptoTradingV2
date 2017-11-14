@@ -1,44 +1,31 @@
 package com.fede.ct.v2.datalayer.impl;
 
-import com.fede.ct.v2.common.model._private.OrderInfo;
 import com.fede.ct.v2.common.model._public.Asset;
 import com.fede.ct.v2.common.model._public.AssetPair;
 import com.fede.ct.v2.common.model._public.Ticker;
 import com.fede.ct.v2.dao.IAssetPairsDao;
 import com.fede.ct.v2.dao.IAssetsDao;
-import com.fede.ct.v2.dao.IOrdersDao;
 import com.fede.ct.v2.dao.ITickersDao;
-import com.fede.ct.v2.datalayer.IDataModel;
+import com.fede.ct.v2.datalayer.IModelPublic;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 /**
- * Created by f.barbano on 05/11/2017.
+ * Created by f.barbano on 11/11/2017.
  */
-// review to delete class
-class DataModelImpl {/*} implements IDataModel {
+class ModelPublicImpl implements IModelPublic {
 
 	private IAssetsDao assetsDao;
 	private IAssetPairsDao assetPairsDao;
 	private ITickersDao tickersDao;
-	private IOrdersDao ordersDao;
+
 
 
 	@Override
 	public List<Asset> getAssets() {
 		return assetsDao.selectAssets();
-	}
-
-	@Override
-	public List<AssetPair> getAssetPairs(boolean discardDotD) {
-		return assetPairsDao.selectAssetPairs(discardDotD);
-	}
-
-	@Override
-	public List<String> getAssetPairNames(boolean discardDotD) {
-		return assetPairsDao.selectAssetPairNames(discardDotD);
 	}
 
 	@Override
@@ -53,6 +40,11 @@ class DataModelImpl {/*} implements IDataModel {
 
 		assetsDao.insertNewAssets(newAssets, callTime);
 		return true;
+	}
+
+	@Override
+	public List<AssetPair> getAssetPairs(boolean onlyTradables) {
+		return assetPairsDao.selectAssetPairs(onlyTradables);
 	}
 
 	@Override
@@ -74,26 +66,6 @@ class DataModelImpl {/*} implements IDataModel {
 		tickersDao.insertTickers(tickers, callTime);
 	}
 
-	@Override
-	public void updateOrders(List<OrderInfo> orders, int userId) {
-		ordersDao.updateOrders(userId, orders);
-	}
-
-	@Override
-	public Ticker retrieveAskPriceAverageLast24(String pairName) {
-		return tickersDao.selectAskPriceAndAverageLast24(pairName);
-	}
-
-	@Override
-	public List<String> getOpenOrderTxIds(int userId) {
-		return ordersDao.getOpenOrders(userId);
-	}
-
-	@Override
-	public List<OrderInfo> getOrderStatus(int userId, List<String> orderTxIds) {
-		return ordersDao.getOrdersStatus(userId, orderTxIds);
-	}
-
 
 	void setAssetsDao(IAssetsDao assetsDao) {
 		this.assetsDao = assetsDao;
@@ -104,8 +76,5 @@ class DataModelImpl {/*} implements IDataModel {
 	void setTickersDao(ITickersDao tickersDao) {
 		this.tickersDao = tickersDao;
 	}
-	void setOrdersDao(IOrdersDao ordersDao) {
-		this.ordersDao = ordersDao;
-	}
-*/
+
 }

@@ -3,18 +3,19 @@ package com.fede.ct.v2.datalayer.impl;
 import com.fede.ct.v2.common.logger.LogService;
 import com.fede.ct.v2.common.logger.SimpleLog;
 import com.fede.ct.v2.dao.IPropertiesDao;
-import com.fede.ct.v2.dao.IUserIdDao;
+import com.fede.ct.v2.dao.IUsersDao;
 import com.fede.ct.v2.datalayer.IContextModel;
 
 /**
  * Created by f.barbano on 06/11/2017.
  */
-class ContextModelImpl implements IContextModel {
+// review to delete class
+class ContextModelImpl {/*implements IContextModel {
 
 	private static final SimpleLog logger = LogService.getLogger(ContextModelImpl.class);
 
 	private IPropertiesDao propertiesDao;
-	private IUserIdDao userIdDao;
+	private IUsersDao userIdDao;
 
 	private Integer userId;
 
@@ -35,15 +36,15 @@ class ContextModelImpl implements IContextModel {
 
 
 	void initialize(String apiKey, String apiSecret) {
-		userId = userIdDao.getUserId(apiKey, apiSecret);
+		userId = userIdDao.getByUserId(apiKey, apiSecret);
 		logger.info("Context initialized --> user ID = %d", userId);
 	}
 
-	void setUserIdDao(IUserIdDao userIdDao) {
+	void setUserIdDao(IUsersDao userIdDao) {
 		this.userIdDao = userIdDao;
 	}
 	void setPropertiesDao(IPropertiesDao propertiesDao) {
 		this.propertiesDao = propertiesDao;
 	}
-
+*/
 }
