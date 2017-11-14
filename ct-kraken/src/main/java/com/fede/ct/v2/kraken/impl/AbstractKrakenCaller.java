@@ -22,7 +22,7 @@ abstract class AbstractKrakenCaller {
 
 	private final KrakenApi krakenApi;
 
-	public AbstractKrakenCaller(KrakenApi krakenApi) {
+	protected AbstractKrakenCaller(KrakenApi krakenApi) {
 		this.krakenApi = krakenApi;
 	}
 

@@ -13,12 +13,12 @@ public class KrakenFactory {
 		return new KrakenPublicImpl();
 	}
 
-	public static IKrakenPrivate getPrivateCaller(String key, String secret) {
-		return new KrakenPrivateImpl(key, secret);
-	}
-
-	public static IKrakenStrategy getStrategyCaller(String key, String secret) {
-		return new KrakenStrategyImpl(key, secret);
-	}
+//	public static IKrakenPrivate getPrivateCaller(String key, String secret) {
+//		return new KrakenPrivateImpl(key, secret);
+//	}
+//
+//	public static IKrakenStrategy getStrategyCaller(String key, String secret) {
+//		return new KrakenStrategyImpl(key, secret);
+//	}
 
 }
