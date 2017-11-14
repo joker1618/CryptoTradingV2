@@ -21,7 +21,16 @@ public class LoginService {
 
 	private static final IConfigPublic configPublic = ConfigPublic.getUniqueInstance();
 
-	public static CryptoContext createContext(RunType runType) {
+	public static CryptoContext registerNewUser(String userName, String apiKey, String apiSecret) {
+		Connection dbConn = createConnection();
+		IUsersDao usersDao = new UsersDbDao(dbConn);
+		UserCtx userCtx = usersDao.createNewUserId(userName, apiKey, apiSecret);
+		CryptoContext ctx = new CryptoContext(RunType.REGISTER_USER, dbConn);
+		ctx.setUserCtx(userCtx);
+		return ctx;
+	}
+
+	public static CryptoContext createContext() {
 		return createContext(RunType.PUBLIC, null);
 	}
 	public static CryptoContext createContext(RunType runType, Integer userId) {

@@ -9,5 +9,6 @@ public interface IUsersDao {
 
 	UserCtx getByUserId(int userId);
 
-	int createNewUserId(String userName, String apiKey, String apiSecret);
+	UserCtx createNewUserId(String userName, String apiKey, String apiSecret);
+
 }

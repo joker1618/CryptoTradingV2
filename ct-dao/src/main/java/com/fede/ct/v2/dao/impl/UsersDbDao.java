@@ -47,7 +47,7 @@ public class UsersDbDao extends AbstractDbDao2 implements IUsersDao {
 	}
 
 	@Override
-	public int createNewUserId(String userName, String apiKey, String apiSecret) {
+	public UserCtx createNewUserId(String userName, String apiKey, String apiSecret) {
 		if(userNameExists(userName)) {
 			throw new TechnicalException("Username %s already exists", userName);
 		}
@@ -56,12 +56,17 @@ public class UsersDbDao extends AbstractDbDao2 implements IUsersDao {
 
 		Query insQuery = new Query(INSERT_NEW_ENTRY, nextId, userName, apiKey, apiSecret);
 		super.performUpdate(insQuery);
-		return nextId;
+
+		UserCtx userCtx = new UserCtx();
+		userCtx.setUserId(nextId);
+		userCtx.setApiKey(apiKey);
+		userCtx.setApiSecret(apiSecret);
+		return userCtx;
 	}
 
 	private boolean userNameExists(String userName) {
 		List<InquiryResult> results = super.performInquiry(new Query(SELECT_USER_BY_NAME, userName));
-		return results.isEmpty();
+		return !results.isEmpty();
 	}
 
 	private Integer getNextFreeUserId() {
@@ -70,7 +75,7 @@ public class UsersDbDao extends AbstractDbDao2 implements IUsersDao {
 		Integer nextId = 1;
 		if(!results.isEmpty()) {
 			Integer maxId = results.get(0).getInteger("MAX_ID");
-			nextId = maxId + 1;
+			if(maxId != null)	nextId = maxId + 1;
 		}
 		return nextId;
 	}

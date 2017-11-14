@@ -5,6 +5,7 @@ package com.fede.ct.v2.common.context;
  */
 public enum RunType {
 
+	REGISTER_USER,
 	PUBLIC,
 	PRIVATE,
 	STRATEGY
