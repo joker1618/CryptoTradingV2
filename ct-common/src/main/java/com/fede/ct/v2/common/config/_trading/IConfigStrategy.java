@@ -1,4 +1,4 @@
-package com.fede.ct.v2.common.config._public;
+package com.fede.ct.v2.common.config._trading;
 
 import java.math.BigDecimal;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.fede.ct.v2.common.config._public;
+package com.fede.ct.v2.common.config._private;
 
 import com.fede.ct.v2.common.config.AbstractConfig;
 
@@ -8,7 +8,7 @@ import com.fede.ct.v2.common.config.AbstractConfig;
 public class ConfigPrivate extends AbstractConfig implements IConfigPrivate {
 
 	public ConfigPrivate(String configPath) {
-		super(configPath);
+		super();
 	}
 
 	@Override

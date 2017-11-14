@@ -1,4 +1,4 @@
-package com.fede.ct.v2.common.config._public;
+package com.fede.ct.v2.common.config._trading;
 
 /**
  * Created by f.barbano on 07/11/2017.

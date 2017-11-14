@@ -15,42 +15,43 @@ import java.util.stream.Collectors;
 /**
  * Created by f.barbano on 12/10/2017.
  */
-public abstract class AbstractConfig {
+public class AbstractConfig {
 
 	private Map<String, Prop> configMap;
 
 	private static final String KEY_SEP = "=";
 	private static final String COMMENT_START = "#";
+	private static final String KEY_IMPORT = "@import";
 
-
-	protected AbstractConfig(String configPath) {
+	protected AbstractConfig() {
 		this.configMap = Collections.synchronizedMap(new HashMap<>());
-
-		try {
-			loadConfigFile(configPath);
-		} catch (IOException e) {
-			throw new RuntimeException(String.format("Unable to init config from file \"%s\"", configPath), e);
-		}
 	}
 
 	protected void loadConfigFile(String configFilePath) throws IOException {
+		Path folder = Paths.get(configFilePath).toAbsolutePath().getParent();
+
 		InputStream is = new FileInputStream(configFilePath);
-		loadConfigFile(is);
-	}
-	
-	protected void loadConfigFile(InputStream is) throws IOException {
+
 		// read properties from file
 		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 		String line;
-		Map<String, Prop> propMap = new HashMap<>();
+		List<Path> imports = new ArrayList<>();
 		while ((line = reader.readLine()) != null) {
-			if(StringUtils.isNotBlank(line.trim()) && !line.trim().startsWith(COMMENT_START) && line.contains(KEY_SEP)) {
-				int idxSep = line.indexOf(KEY_SEP);
-				String key = line.substring(0, idxSep).trim();
-				String value = line.substring(idxSep+1).trim();
-				configMap.put(key, new Prop(key, value, value));
+			if(StringUtils.isNotBlank(line) && !line.trim().startsWith(COMMENT_START)) {
+				String trimmed = line.trim();
+				if(trimmed.startsWith(KEY_IMPORT+" ")) {
+					String fn = trimmed.replaceFirst(KEY_IMPORT, "").trim();
+					imports.add(folder.resolve(fn));
+				} else if(trimmed.contains(KEY_SEP)) {
+					int idxSep = trimmed.indexOf(KEY_SEP);
+					String key = trimmed.substring(0, idxSep).trim();
+					String value = trimmed.substring(idxSep+1).trim();
+					configMap.put(key, new Prop(key, value, value));
+				}
 			}
 		}
+
+		for(Path p : imports)	loadConfigFile(p.toString());
 
 		// replace variables
 		// #var#  and  ${var}  allowed
@@ -178,9 +179,36 @@ public abstract class AbstractConfig {
 	}
 	protected Level getLoggerLevel(String key, Level _default) {
 		try {
-			return LogService.LogLevel.parse(getString(key));
+			return LogLevel.parse(getString(key));
 		} catch(Exception ex) {
 			return _default;
+		}
+	}
+
+	public static class LogLevel extends Level {
+		/**
+		 * Duplicate of SEVERE level (same value = 1000)
+		 */
+		public static final Level ERROR = new LogLevel("ERROR", 1000);
+
+		/**
+		 * DEBUG level value between INFO and CONFIG
+		 */
+		public static final Level DEBUG = new LogLevel("DEBUG", 750);
+
+		protected LogLevel(String name, int value) {
+			super(name, value);
+		}
+
+		public static synchronized Level parse(String name) {
+			if(ERROR.getName().equalsIgnoreCase(name)) 	return ERROR;
+			if(DEBUG.getName().equalsIgnoreCase(name)) 	return DEBUG;
+
+			try {
+				return Level.parse(name);
+			} catch (IllegalArgumentException ex) {
+				return ALL;
+			}
 		}
 	}
 

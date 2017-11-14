@@ -15,6 +15,7 @@
         <module>ct-kraken</module>
         <module>ct-service</module>
         <module>ct-launcher</module>
+        <module>ct-login</module>
     </modules>
 
     <properties>

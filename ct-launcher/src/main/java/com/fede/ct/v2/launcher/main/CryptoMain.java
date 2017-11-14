@@ -1,24 +1,33 @@
 package com.fede.ct.v2.launcher.main;
 
-import com.fede.ct.v2.common.config._public.ConfigPrivate;
+import com.fede.ct.v2.common.config._private.ConfigPrivate;
 import com.fede.ct.v2.common.config._public.ConfigPublic;
-import com.fede.ct.v2.common.config._public.ConfigStrategy;
+import com.fede.ct.v2.common.config._trading.ConfigStrategy;
 import com.fede.ct.v2.common.config._public.IConfigPublic;
+import com.fede.ct.v2.common.constants.Const;
+import com.fede.ct.v2.common.context.CryptoContext;
+import com.fede.ct.v2.common.context.RunType;
+import com.fede.ct.v2.common.context.RunType.*;
 import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.logger.LogFormatter;
 import com.fede.ct.v2.common.logger.LogService;
 import com.fede.ct.v2.common.logger.SimpleLog;
 import com.fede.ct.v2.common.util.OutFormat;
+import com.fede.ct.v2.login.LoginService;
 import com.fede.ct.v2.service.ICryptoService;
 import com.fede.ct.v2.service.impl.CryptoServiceFactory;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Level;
 
+
+import static com.fede.ct.v2.common.context.RunType.*;
 import static com.fede.ct.v2.common.logger.LogService.LogServiceConfig;
 
 /**
@@ -30,69 +39,77 @@ public final class CryptoMain {
 
 	private static final IConfigPublic configPublic = ConfigPublic.getUniqueInstance();
 
-	private enum EngineTypology { PUBLIC, PRIVATE, STRATEGY }
-
-	public static void main(String[] args) {       	
+	public static void main(String[] args) {
 		long startMain = System.currentTimeMillis();
 
+		configPublic.loadConfigFile(Const.DEFAULT_PUBLIC_CONFIG_PATH);
+
 		// check user input
-		EngineTypology runTypology = checkInputArgs(args);
+		RunType runType = checkInputArgs(args);
+
+		// review now only public context
+		CryptoContext ctx = LoginService.createContext(runType);
 
 		// init logger
-		initLogger(runTypology);
+		initLogger();
 
 		// log configs
-		logger.config("PUBLIC CONFIGS:\n%s", configPublic);
+		logger.config("CONFIGURATION:\n%s", configPublic);
 
 		ICryptoService service;
 
-		switch (runTypology) {
-			case PUBLIC:	service = CryptoServiceFactory.getServicePublic(); break;
-			case PRIVATE:   service = CryptoServiceFactory.getServicePrivate(new ConfigPrivate(args[1])); break;
-			case STRATEGY:  service = CryptoServiceFactory.getServiceStrategy(new ConfigPrivate(args[1]), new ConfigStrategy(args[2])); break;
+		switch (runType) {
+			case PUBLIC:	service = CryptoServiceFactory.getServicePublic(ctx); break;
+//			case PRIVATE:   service = CryptoServiceFactory.getServicePrivate(new ConfigPrivate(args[1])); break;
+//			case STRATEGY:  service = CryptoServiceFactory.getServiceStrategy(new ConfigPrivate(args[1]), new ConfigStrategy(args[2])); break;
 			default:
-				throw new TechnicalException("Service not yet implemented for run typology = %s", runTypology);
+				throw new TechnicalException("Service not yet implemented for run typology = %s", runType);
 		}
 
 		service.startEngine();
 
-		logger.info("End %s run. Elapsed: %s", runTypology, OutFormat.toStringElapsed(startMain, System.currentTimeMillis(), false));
+		logger.info("End %s run. Elapsed: %s", runType, OutFormat.toStringElapsed(startMain, System.currentTimeMillis(), false));
 	}
 
-	private static EngineTypology checkInputArgs(String[] args) {
-		EngineTypology toRun = EngineTypology.PUBLIC;
-		if(args.length > 0)		toRun = EngineTypology.valueOf(args[0].toUpperCase());
-		return toRun;
-//
-//		boolean showUsage = true;
-//		if(args.length == 1) {
-//			try {
-//				toRun = EngineTypology.valueOf(args[0].toUpperCase());
-//				showUsage = false;
-//			} catch (IllegalArgumentException ex) {
-//			}
-//		}
-//
-//		if(showUsage) {
-//			String jarName = CryptoMain.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-//			String usage = String.format("USAGE:\njava -jar %s [PUBLIC|PRIVATE|STRATEGY]\n* default = PUBLIC", jarName);
-//			System.out.println(usage);
-//			System.exit(1);
-//		}
-//
-//		return toRun;
+	private static RunType checkInputArgs(String[] args) {
+		if(args.length == 0) {
+			return RunType.PUBLIC;
+		}
+
+		RunType runType = RunType.valueOf(args[0].toUpperCase());
+		boolean showUsage;
+
+		if(runType == RunType.PUBLIC) {
+			showUsage = args.length != 1;
+		} else if(runType == RunType.PRIVATE || runType == RunType.STRATEGY) {
+			showUsage = args.length != 2 || !Files.exists(Paths.get(args[1]));
+		} else {
+			throw new TechnicalException("Unchecked run type %s", runType.name());
+		}
+
+		if(showUsage) {
+			String jarName = CryptoMain.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+			String usage = "USAGE\n";
+			usage += String.format("   java -jar %s [PUBLIC]\n", jarName);
+			usage += String.format("   java -jar %s PRIVATE  <private config file path>\n", jarName);
+			usage += String.format("   java -jar %s STRATEGY  <strategy config file path>", jarName);
+			System.out.println(usage);
+			System.exit(1);
+		}
+
+		return runType;
 	}
 
-	private static void initLogger(EngineTypology runTypology) {
+	private static void initLogger() {
 		try {
-			LogService.configure(getLoggerConfig(runTypology));
+			LogService.configure(getLoggerConfig());
 		} catch (IOException e) {
 			logger.error(e, "Unable to init logger");
 			System.exit(2);
 		}
 	}
 
-	private static LogServiceConfig getLoggerConfig(EngineTypology runTypology) {
+	private static LogServiceConfig getLoggerConfig() {
 		return new LogServiceConfig() {
 			@Override
 			public String getRootLoggerName() {
@@ -116,9 +133,7 @@ public final class CryptoMain {
 
 			@Override
 			public Map<Path, Pair<Level, LogFormatter>> getFileHandlers() {
-				Path errPublicPath = configPublic.getLogFolder().resolve(String.format("ct.%s.warn", runTypology.name().toLowerCase()));
-				Pair<Level, LogFormatter> pair = Pair.of(Level.WARNING, new LogFormatter(true, true, true));
-				return Collections.singletonMap(errPublicPath, pair);
+				return null;
 			}
 		};
 	}

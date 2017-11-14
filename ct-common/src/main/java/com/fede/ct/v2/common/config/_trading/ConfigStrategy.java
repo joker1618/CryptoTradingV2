@@ -1,4 +1,4 @@
-package com.fede.ct.v2.common.config._public;
+package com.fede.ct.v2.common.config._trading;
 
 import com.fede.ct.v2.common.config.AbstractConfig;
 
@@ -13,7 +13,7 @@ import java.util.List;
 public class ConfigStrategy extends AbstractConfig implements IConfigStrategy {
 
 	public ConfigStrategy(String configPath) {
-		super(configPath);
+		super();
 	}
 
 	@Override
