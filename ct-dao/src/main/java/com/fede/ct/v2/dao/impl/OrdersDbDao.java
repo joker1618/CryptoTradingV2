@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * Created by f.barbano on 06/11/2017.
  */
-public class OrdersDbDao extends AbstractDbDao implements IOrdersDao {
+public class OrdersDbDao {/*extends AbstractDbDao implements IOrdersDao {
 
 	private static final String REPLACE_ORDERS_PREFIX = "REPLACE INTO ORDERS (ORDER_TX_ID,USER_ID,REF_ID,USER_REF,STATUS,REASON,OPENTM,CLOSETM,STARTTM,EXPIRETM,VOL,VOL_EXEC,COST,FEE,AVG_PRICE,STOP_PRICE,LIMIT_PRICE,MISC,OFLAGS,TRADES_ID,DESCR_PAIR_NAME,DESCR_ORDER_ACTION,DESCR_ORDER_TYPE,DESCR_PRICE,DESCR_PRICE2,DESCR_LEVERAGE,DESCR_ORDER_DESCR,DESCR_CLOSE_DESCR) VALUES ";
 	private static final String SELECT_OPEN_ORDERS = "SELECT ORDER_TX_ID FROM ORDERS WHERE STATUS = 'open' AND USER_ID = ?";
@@ -139,5 +139,5 @@ public class OrdersDbDao extends AbstractDbDao implements IOrdersDao {
 //		dff
 //
 //	}
-	
+*/
 }

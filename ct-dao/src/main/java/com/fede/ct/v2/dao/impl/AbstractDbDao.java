@@ -15,6 +15,7 @@ import java.util.Arrays;
 /**
  * Created by f.barbano on 02/11/2017.
  */
+// review to delete class
 abstract class AbstractDbDao {
 
 	private static final SimpleLog logger = LogService.getLogger(AbstractDbDao.class);

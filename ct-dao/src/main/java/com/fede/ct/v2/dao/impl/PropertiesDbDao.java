@@ -11,7 +11,7 @@ import java.sql.SQLException;
 /**
  * Created by f.barbano on 05/11/2017.
  */
-public class PropertiesDbDao extends AbstractDbDao implements IPropertiesDao {
+public class PropertiesDbDao {/*} extends AbstractDbDao implements IPropertiesDao {
 
 	private static final String SELECT_PROPERTY = "SELECT PROP_VALUE FROM CT_PROPERTIES WHERE PROP_NAME = ? AND USER_ID = ?";
 	private static final String SET_PROPERTY = "REPLACE INTO CT_PROPERTIES (PROP_NAME, USER_ID, PROP_VALUE) VALUES (?,?,?)";
@@ -50,5 +50,5 @@ public class PropertiesDbDao extends AbstractDbDao implements IPropertiesDao {
 
 		return null;
 	}
-
+*/
 }

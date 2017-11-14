@@ -1,6 +1,5 @@
 package com.fede.ct.v2.dao.impl;
 
-import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.model._public.AssetPair;
 import com.fede.ct.v2.common.model._public.AssetPair.FeeSchedule;
 import com.fede.ct.v2.common.model._public.AssetPair.Leverage;
@@ -8,40 +7,32 @@ import com.fede.ct.v2.common.model.types.FeeType;
 import com.fede.ct.v2.common.model.types.LeverageType;
 import com.fede.ct.v2.common.util.StreamUtil;
 import com.fede.ct.v2.dao.IAssetPairsDao;
-import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
-
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 
 /**
  * Created by f.barbano on 05/11/2017.
  */
-public class AssetPairsDbDao extends AbstractDbDao implements IAssetPairsDao {
+public class AssetPairsDbDao extends AbstractDbDao2 implements IAssetPairsDao {
 
-	private static final String FEE_TYPE_FEES = "fees";
-	private static final String FEE_TYPE_FEES_MAKER = "fees_maker";
-	private static final String LEVERAGE_TYPE_BUY = "buy";
-	private static final String LEVERAGE_TYPE_SELL = "sell";
+	private static final String SELECT_VALID_ASSET_PAIRS = "SELECT PAIR_ID, PAIR_NAME, ALT_NAME, A_CLASS_BASE, BASE, A_CLASS_QUOTE, QUOTE, LOT, PAIR_DECIMALS, LOT_DECIMALS, LOT_MULTIPLIER, FEE_VOLUME_CURRENCY, MARGIN_CALL, MARGIN_STOP FROM ASSET_PAIRS WHERE EXPIRE_TIME = 0 ORDER BY PAIR_NAME";
+	private static final String SELECT_TRADABLE_ASSET_PAIRS = "SELECT PAIR_ID, PAIR_NAME, ALT_NAME, A_CLASS_BASE, BASE, A_CLASS_QUOTE, QUOTE, LOT, PAIR_DECIMALS, LOT_DECIMALS, LOT_MULTIPLIER, FEE_VOLUME_CURRENCY, MARGIN_CALL, MARGIN_STOP FROM ASSET_PAIRS WHERE EXPIRE_TIME = 0 AND PAIR_NAME NOT LIKE '%.d' ORDER BY PAIR_NAME";
+	private static final String SELECT_VALID_FEES_PREFIX = "SELECT PAIR_ID, FEE_TYPE, VOLUME, PERCENT_FEE FROM ASSET_PAIRS_FEE WHERE PAIR_ID IN ";
+	private static final String SELECT_VALID_LEVERAGES_PREFIX = "SELECT PAIR_ID, LEVERAGE_TYPE, LEVERAGE_VALUE FROM ASSET_PAIRS_LEVERAGE WHERE PAIR_ID IN ";
 
-	private static final String SELECT_VALIDS = "SELECT PAIR_ID, PAIR_NAME, ALT_NAME, A_CLASS_BASE, BASE, A_CLASS_QUOTE, QUOTE, LOT, PAIR_DECIMALS, LOT_DECIMALS, LOT_MULTIPLIER, FEE_VOLUME_CURRENCY, MARGIN_CALL, MARGIN_STOP FROM ASSET_PAIRS WHERE EXPIRE_TIME = 0 ORDER BY PAIR_NAME";
-	private static final String SELECT_VALIDS_NO_DOT_D = "SELECT PAIR_ID, PAIR_NAME, ALT_NAME, A_CLASS_BASE, BASE, A_CLASS_QUOTE, QUOTE, LOT, PAIR_DECIMALS, LOT_DECIMALS, LOT_MULTIPLIER, FEE_VOLUME_CURRENCY, MARGIN_CALL, MARGIN_STOP FROM ASSET_PAIRS WHERE EXPIRE_TIME = 0 AND PAIR_NAME NOT LIKE '%.d' ORDER BY PAIR_NAME";
-	private static final String SELECT_VALIDS_FEE = "SELECT PAIR_ID, FEE_TYPE, VOLUME, PERCENT_FEE FROM ASSET_PAIRS_FEE WHERE PAIR_ID IN (%s)";
-	private static final String SELECT_VALIDS_LEVERAGE = "SELECT PAIR_ID, LEVERAGE_TYPE, LEVERAGE_VALUE FROM ASSET_PAIRS_LEVERAGE WHERE PAIR_ID IN (%s)";
-	private static final String SELECT_NAMES = "SELECT PAIR_NAME FROM ASSET_PAIRS WHERE EXPIRE_TIME = 0 ORDER BY PAIR_NAME";
-	private static final String SELECT_NAMES_NO_DOT_D = "SELECT PAIR_NAME FROM ASSET_PAIRS WHERE EXPIRE_TIME = 0 AND PAIR_NAME NOT LIKE '%.d' ORDER BY PAIR_NAME";
-
-	private static final String UPDATE_EXPIRE_TIME = "UPDATE ASSET_PAIRS SET EXPIRE_TIME = %d WHERE EXPIRE_TIME = 0";
-	private static final String SELECT_NEXT_ID = "SELECT MAX(PAIR_ID) AS MAX_ID FROM ASSET_PAIRS";
+	private static final String UPDATE_EXPIRE_TIME = "UPDATE ASSET_PAIRS SET EXPIRE_TIME = ? WHERE EXPIRE_TIME = 0";
+	private static final String SELECT_MAX_ID = "SELECT MAX(PAIR_ID) AS MAX_ID FROM ASSET_PAIRS";
 	private static final String INSERT_NEW_PREFIX = "INSERT INTO ASSET_PAIRS (PAIR_ID, PAIR_NAME, ALT_NAME, A_CLASS_BASE, BASE, A_CLASS_QUOTE, QUOTE, LOT, PAIR_DECIMALS, LOT_DECIMALS, LOT_MULTIPLIER, FEE_VOLUME_CURRENCY, MARGIN_CALL, MARGIN_STOP, START_TIME, EXPIRE_TIME) VALUES ";
 	private static final String INSERT_NEW_FEE_PREFIX = "INSERT INTO ASSET_PAIRS_FEE (PAIR_ID, FEE_TYPE, VOLUME, PERCENT_FEE) VALUES ";
 	private static final String INSERT_NEW_LEVERAGE_PREFIX = "INSERT INTO ASSET_PAIRS_LEVERAGE (PAIR_ID, LEVERAGE_TYPE, LEVERAGE_VALUE) VALUES ";
+
+	private static final String SELECT_VALID_NAMES = "SELECT PAIR_NAME FROM ASSET_PAIRS WHERE EXPIRE_TIME = 0 ORDER BY PAIR_NAME";
+	private static final String SELECT_TRADABLE_NAMES = "SELECT PAIR_NAME FROM ASSET_PAIRS WHERE EXPIRE_TIME = 0 AND PAIR_NAME NOT LIKE '%.d' ORDER BY PAIR_NAME";
 
 
 	public AssetPairsDbDao(Connection connection) {
@@ -49,213 +40,174 @@ public class AssetPairsDbDao extends AbstractDbDao implements IAssetPairsDao {
 	}
 
 	@Override
-	public List<AssetPair> selectAssetPairs(boolean discardDotD) {
-		Map<Long, AssetPair> map = inquiryTableAssetPairs(discardDotD);
-		if(!map.isEmpty()) {
-			inquiryTableAssetPairsFee(map);
-			inquiryTableAssetPairsLeverage(map);
+	public List<AssetPair> selectAssetPairs(boolean onlyTradables) {
+
+		List<AssetPair> toRet = new ArrayList<>();
+
+		// Table ASSET_PAIRS
+		String strQuery = onlyTradables ? SELECT_TRADABLE_ASSET_PAIRS : SELECT_VALID_ASSET_PAIRS;
+		List<InquiryResult> res = super.performInquiry(new Query(strQuery));
+
+		if(!res.isEmpty()) {
+			// Parse result of ASSET_PAIRS inquiry
+			Map<Long, AssetPair> map = new HashMap<>();
+			res.forEach(ir -> parseAssetPair(ir, map));
+
+			// Table ASSET_PAIRS_FEE
+			List<Long> pairIds = new ArrayList<>(map.keySet());
+			List<Query> feesQueryList = createJdbcQueries(SELECT_VALID_FEES_PREFIX, 1, pairIds.size(), pairIds, l -> l);
+			for(Query query : feesQueryList) {
+				List<InquiryResult> feesRes = super.performInquiry(query);
+				feesRes.forEach(ir -> parseAssetPairFee(ir, map));
+			}
+
+			// Table ASSET_PAIRS_LEVERAGE
+			List<Query> levQueryList = createJdbcQueries(SELECT_VALID_LEVERAGES_PREFIX, 1, pairIds.size(), pairIds, l -> l);
+			for(Query query : levQueryList) {
+				List<InquiryResult> levRes = super.performInquiry(query);
+				levRes.forEach(ir -> parseAssetPairLeverage(ir, map));
+			}
+
+			toRet.addAll(map.values());
+			toRet.sort(Comparator.comparing(AssetPair::getPairName));
 		}
-		List<AssetPair> toRet = new ArrayList<>(map.values());
-		toRet.sort(Comparator.comparing(AssetPair::getPairName));
+
 		return toRet;
 	}
 
 	@Override
-	public List<String> selectAssetPairNames(boolean discardDotD) {
-		String query = discardDotD ? SELECT_NAMES_NO_DOT_D : SELECT_NAMES;
-		try (PreparedStatement ps = createPreparedStatement(query);
-			 ResultSet rs = ps.executeQuery()){
-
-			List<String> names = new ArrayList<>();
-			if(rs != null) {
-				while(rs.next()) {
-					names.add(rs.getString("PAIR_NAME"));
-				}
-			}
-			return names;
-
-		} catch (SQLException e) {
-			throw new TechnicalException(e, "Error performing select [query=%s]", query);
-		}
+	public List<String> selectAssetPairNames(boolean onlyTradables) {
+		String strQuery = onlyTradables ? SELECT_TRADABLE_NAMES : SELECT_VALID_NAMES;
+		List<InquiryResult> results = super.performInquiry(new Query(strQuery));
+		return StreamUtil.map(results, ir -> parseAssetPair(ir).getPairName());
 	}
 
 	@Override
 	public void insertNewAssetPairs(List<AssetPair> assetPairs, long callTime) {
-		String qUpdate = String.format(UPDATE_EXPIRE_TIME, callTime);
+		// 1. get next id
+		List<InquiryResult> results = super.performInquiry(new Query(SELECT_MAX_ID));
+		long nextId = 0L;
+		if(!results.isEmpty()) {
+			Long maxId = results.get(0).getLong("MAX_ID");
+			if(maxId != null)	nextId = maxId+1;
+		}
 
-		AtomicLong nextId = new AtomicLong(getNextId());
-		List<String> apValues = new ArrayList<>();
-		List<String> feeValues = new ArrayList<>();
-		List<String> levValues = new ArrayList<>();
+		// Set next id to asset pair and sub struct Leverage and FeeShedule
 		for(AssetPair ap : assetPairs) {
-			long id = nextId.getAndIncrement();
-			apValues.add(assetPairToValues(id, callTime, ap));
-			String strFee = feesToValues(id, ap);
-			if(StringUtils.isNotBlank(strFee))	feeValues.add(strFee);
-			String strLev = leverageToValues(id, ap);
-			if(StringUtils.isNotBlank(strLev))	levValues.add(strLev);
+			ap.setPairId(nextId);
+			for(FeeSchedule fs : ap.getFees())		fs.setPairId(nextId);
+			for(FeeSchedule fs : ap.getFeesMaker())	fs.setPairId(nextId);
+			for(Leverage lev : ap.getLeverageBuy())		lev.setPairId(nextId);
+			for(Leverage lev : ap.getLeverageSell())	lev.setPairId(nextId);
+			nextId++;
 		}
-		String qInsAssetPairs = INSERT_NEW_PREFIX + StreamUtil.join(apValues, ",");
-		String qInsFee = INSERT_NEW_FEE_PREFIX + StreamUtil.join(feeValues, ",");
-		String qInsLev = INSERT_NEW_LEVERAGE_PREFIX + StreamUtil.join(levValues, ",");
 
-		super.performUpdateBatch(qUpdate, qInsAssetPairs, qInsFee, qInsLev);
+		List<FeeSchedule> feeList = assetPairs.stream().flatMap(ap -> {
+			List<FeeSchedule> list = new ArrayList<>(ap.getFees());
+			list.addAll(ap.getFeesMaker());
+			return list.stream();
+		}).collect(Collectors.toList());
+
+		List<Leverage> levList = assetPairs.stream().flatMap(ap -> {
+			List<Leverage> list = new ArrayList<>(ap.getLeverageBuy());
+			list.addAll(ap.getLeverageSell());
+			return list.stream();
+		}).collect(Collectors.toList());
+
+		// 2. query update valids
+		List<Query> transactionQueries = new ArrayList<>();
+		transactionQueries.add(new Query(UPDATE_EXPIRE_TIME, callTime));
+
+		// 3. query insert asset pairs
+		List<Function<AssetPair, Object>> apFuncs = getAssetPairInsFunctions(callTime);
+		transactionQueries.addAll(createJdbcQueries(INSERT_NEW_PREFIX, assetPairs.size(), apFuncs.size(), assetPairs, apFuncs));
+
+		List<Function<FeeSchedule, Object>> feeFuncs = getFeeScheduleInsFunctions();
+		transactionQueries.addAll(createJdbcQueries(INSERT_NEW_FEE_PREFIX, feeList.size(), feeFuncs.size(), feeList, feeFuncs));
+
+		List<Function<Leverage, Object>> levFuncs = getLeverageInsFunctions();
+		transactionQueries.addAll(createJdbcQueries(INSERT_NEW_LEVERAGE_PREFIX, levList.size(), levFuncs.size(), levList, levFuncs));
+
+		// 4. execute transaction
+		super.performTransaction(transactionQueries);
 	}
 
-	private long getNextId() {
-		try(PreparedStatement ps = createPreparedStatement(SELECT_NEXT_ID);
-			ResultSet rs = ps.executeQuery()){
-
-			if(rs != null && rs.next()) {
-				long maxId = rs.getLong("MAX_ID");
-				return maxId+1;
-			} else {
-				return 0L;
-			}
-
-		} catch(SQLException e) {
-			throw new TechnicalException(e, "Error performing select [query=%s]", SELECT_NEXT_ID);
-		}
+	private List<Function<AssetPair, Object>> getAssetPairInsFunctions(Long callTime) {
+		List<Function<AssetPair, Object>> functions = new ArrayList<>();
+		functions.add(AssetPair::getPairId);
+		functions.add(AssetPair::getPairName);
+		functions.add(AssetPair::getAltName);
+		functions.add(AssetPair::getAClassBase);
+		functions.add(AssetPair::getBase);
+		functions.add(AssetPair::getAClassQuote);
+		functions.add(AssetPair::getQuote);
+		functions.add(AssetPair::getLot);
+		functions.add(AssetPair::getPairDecimals);
+		functions.add(AssetPair::getLotDecimals);
+		functions.add(AssetPair::getLotMultiplier);
+		functions.add(AssetPair::getFeeVolumeCurrency);
+		functions.add(AssetPair::getMarginCall);
+		functions.add(AssetPair::getMarginStop);
+		functions.add(ap -> callTime);
+		functions.add(ap -> 0L);
+		return functions;
+	}
+	private List<Function<FeeSchedule, Object>> getFeeScheduleInsFunctions() {
+		List<Function<FeeSchedule, Object>> functions = new ArrayList<>();
+		functions.add(FeeSchedule::getPairId);
+		functions.add(fs -> fs.getFeeType().label());
+		functions.add(FeeSchedule::getVolume);
+		functions.add(FeeSchedule::getPercentFee);
+		return functions;
+	}
+	private List<Function<Leverage, Object>> getLeverageInsFunctions() {
+		List<Function<Leverage, Object>> functions = new ArrayList<>();
+		functions.add(Leverage::getPairId);
+		functions.add(lev -> lev.getType().label());
+		functions.add(Leverage::getValue);
+		return functions;
 	}
 
-	private Map<Long, AssetPair> inquiryTableAssetPairs(boolean discardDotD) {
-		String query = discardDotD ? SELECT_VALIDS_NO_DOT_D : SELECT_VALIDS;
-		try (PreparedStatement ps = createPreparedStatement(query);
-			 ResultSet rs = ps.executeQuery()){
-
-			Map<Long, AssetPair> assetPairs = new HashMap<>();
-
-			if(rs != null) {
-				while(rs.next()) {
-					Long pairID = rs.getLong("PAIR_ID");
-					AssetPair ap = new AssetPair();
-					ap.setPairName(rs.getString("PAIR_NAME"));
-					ap.setAltName(rs.getString("ALT_NAME"));
-					ap.setAClassBase(rs.getString("A_CLASS_BASE"));
-					ap.setBase(rs.getString("BASE"));
-					ap.setAClassQuote(rs.getString("A_CLASS_QUOTE"));
-					ap.setQuote(rs.getString("QUOTE"));
-					ap.setLot(rs.getString("LOT"));
-					ap.setPairDecimals(rs.getInt("PAIR_DECIMALS"));
-					ap.setLotDecimals(rs.getInt("LOT_DECIMALS"));
-					ap.setLotMultiplier(rs.getInt("LOT_MULTIPLIER"));
-					ap.setFeeVolumeCurrency(rs.getString("FEE_VOLUME_CURRENCY"));
-					ap.setMarginCall(rs.getInt("MARGIN_CALL"));
-					ap.setMarginStop(rs.getInt("MARGIN_STOP"));
-					assetPairs.put(pairID, ap);
-				}
-			}
-			return assetPairs;
-
-		} catch (SQLException e) {
-			throw new TechnicalException(e, "Error performing select [query=%s]", query);
-		}
+	private AssetPair parseAssetPair(InquiryResult res) {
+		AssetPair ap = new AssetPair();
+		ap.setPairId(res.getLong("PAIR_ID"));
+		ap.setPairName(res.getString("PAIR_NAME"));
+		ap.setAltName(res.getString("ALT_NAME"));
+		ap.setAClassBase(res.getString("A_CLASS_BASE"));
+		ap.setBase(res.getString("BASE"));
+		ap.setAClassQuote(res.getString("A_CLASS_QUOTE"));
+		ap.setQuote(res.getString("QUOTE"));
+		ap.setLot(res.getString("LOT"));
+		ap.setPairDecimals(res.getInteger("PAIR_DECIMALS"));
+		ap.setLotDecimals(res.getInteger("LOT_DECIMALS"));
+		ap.setLotMultiplier(res.getInteger("LOT_MULTIPLIER"));
+		ap.setFeeVolumeCurrency(res.getString("FEE_VOLUME_CURRENCY"));
+		ap.setMarginCall(res.getInteger("MARGIN_CALL"));
+		ap.setMarginStop(res.getInteger("MARGIN_STOP"));
+		return ap;
 	}
-	private void inquiryTableAssetPairsFee(Map<Long, AssetPair> assetPairs) {
-		String pairIDsString = StreamUtil.join(assetPairs.keySet(), ",", String::valueOf);
-		String query = String.format(SELECT_VALIDS_FEE, pairIDsString);
-
-		try (PreparedStatement ps = createPreparedStatement(query);
-			 ResultSet rs = ps.executeQuery()){
-
-			if(rs != null) {
-				while(rs.next()) {
-					long pairID = rs.getLong("PAIR_ID");
-					String feeType = rs.getString("FEE_TYPE");
-					int volume = rs.getInt("VOLUME");
-					BigDecimal percentFee = rs.getBigDecimal("PERCENT_FEE");
-					FeeSchedule fs = new FeeSchedule(FeeType.getByLabel(feeType), volume, percentFee);
-
-					if(FEE_TYPE_FEES.equals(feeType)) {
-						assetPairs.get(pairID).getFees().add(fs);
-					} else {
-						assetPairs.get(pairID).getFeesMaker().add(fs);
-					}
-				}
-			}
-			assetPairs.values().forEach(ap -> {
-				ap.getFees().sort(Comparator.comparingInt(FeeSchedule::getVolume));
-				ap.getFeesMaker().sort(Comparator.comparingInt(FeeSchedule::getVolume));
-			});
-
-		} catch (SQLException e) {
-			throw new TechnicalException(e, "Error performing select [query=%s]", query);
-		}
+	private void parseAssetPair(InquiryResult res, Map<Long, AssetPair> map) {
+		AssetPair ap = parseAssetPair(res);
+		map.put(ap.getPairId(), ap);
 	}
-	private void inquiryTableAssetPairsLeverage(Map<Long, AssetPair> assetPairs) {
-		String pairIDsString = StreamUtil.join(assetPairs.keySet(), ",", String::valueOf);
-		String query = String.format(SELECT_VALIDS_LEVERAGE, pairIDsString);
+	private void parseAssetPairFee(InquiryResult res, Map<Long, AssetPair> map) {
+		Long pairId = res.getLong("PAIR_ID");
+		FeeType feeType = FeeType.getByLabel(res.getString("FEE_TYPE"));
+		Integer volume = res.getInteger("VOLUME");
+		BigDecimal percentFee = res.getBigDecimal("PERCENT_FEE");
 
-		try (PreparedStatement ps = createPreparedStatement(query);
-			 ResultSet rs = ps.executeQuery()){
+		AssetPair ap = map.get(pairId);
+		List<FeeSchedule> list = feeType == FeeType.FEES ? ap.getFees() : ap.getFeesMaker();
+		list.add(new FeeSchedule(pairId, feeType, volume, percentFee));
+	}
+	private void parseAssetPairLeverage(InquiryResult res, Map<Long, AssetPair> map) {
+		Long pairId = res.getLong("PAIR_ID");
+		LeverageType levType = LeverageType.getByLabel(res.getString("LEVERAGE_TYPE"));
+		Integer levValue = res.getInteger("LEVERAGE_VALUE");
 
-			if(rs != null) {
-				while(rs.next()) {
-					long pairID = rs.getLong("PAIR_ID");
-					int levValue = rs.getInt("LEVERAGE_VALUE");
-					String leverageType = rs.getString("LEVERAGE_TYPE");
-					LeverageType levType = LeverageType.getByLabel(leverageType);
-					Leverage leverage = new Leverage(levType, levValue);
-					if(LEVERAGE_TYPE_BUY.equals(leverageType)) {
-						assetPairs.get(pairID).getLeverageBuy().add(leverage);
-					} else {
-						assetPairs.get(pairID).getLeverageSell().add(leverage);
-					}
-				}
-			}
-
-		} catch (SQLException e) {
-			throw new TechnicalException(e, "Error performing select [query=%s]", query);
-		}
+		AssetPair ap = map.get(pairId);
+		List<Leverage> list = levType == LeverageType.BUY ? ap.getLeverageBuy() : ap.getLeverageSell();
+		list.add(new Leverage(pairId, levType, levValue));
 	}
 
-
-	private String assetPairToValues(long id, Long callTime, AssetPair assetPair) {
-		//PAIR_ID, PAIR_NAME, ALT_NAME, A_CLASS_BASE, BASE, A_CLASS_QUOTE, QUOTE, LOT, PAIR_DECIMALS, LOT_DECIMALS, LOT_MULTIPLIER, FEE_VOLUME_CURRENCY, MARGIN_CALL, MARGIN_STOP
-		return String.format("(%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, %d, %d, '%s', %d, %d, %d, 0)",
-			id,
-			assetPair.getPairName(),
-			assetPair.getAltName(),
-			assetPair.getAClassBase(),
-			assetPair.getBase(),
-			assetPair.getAClassQuote(),
-			assetPair.getQuote(),
-			assetPair.getLot(),
-			assetPair.getPairDecimals(),
-			assetPair.getLotDecimals(),
-			assetPair.getLotMultiplier(),
-			assetPair.getFeeVolumeCurrency(),
-			assetPair.getMarginCall(),
-			assetPair.getMarginStop(),
-			callTime
-		);
-	}
-	private String feesToValues(Long pairID, AssetPair assetPair) {
-		StringBuilder sb = new StringBuilder();
-		for(FeeSchedule fee : assetPair.getFees()) {
-			if(sb.length() > 0)		sb.append(",");
-			String val = String.format("(%d, '%s', %d, %s)", pairID, FEE_TYPE_FEES, fee.getVolume(), toJdbcString(fee.getPercentFee()));
-			sb.append(val);
-		}
-		for(FeeSchedule fee : assetPair.getFeesMaker()) {
-			if(sb.length() > 0)		sb.append(",");
-			String val = String.format("(%d, '%s', %d, %s)", pairID, FEE_TYPE_FEES_MAKER, fee.getVolume(), toJdbcString(fee.getPercentFee()));
-			sb.append(val);
-		}
-		return sb.toString();
-	}
-	private String leverageToValues(Long pairID, AssetPair assetPair) {
-		StringBuilder sb = new StringBuilder();
-		for(Leverage lev : assetPair.getLeverageBuy()) {
-			if(sb.length() > 0)		sb.append(",");
-			String val = String.format("(%d, '%s', %d)", pairID, LEVERAGE_TYPE_BUY, lev.getValue());
-			sb.append(val);
-		}
-		for(Leverage lev : assetPair.getLeverageSell()) {
-			if(sb.length() > 0)		sb.append(",");
-			String val = String.format("(%d, '%s', %d)", pairID, LEVERAGE_TYPE_SELL, lev.getValue());
-			sb.append(val);
-		}
-		return sb.toString();
-	}
 }

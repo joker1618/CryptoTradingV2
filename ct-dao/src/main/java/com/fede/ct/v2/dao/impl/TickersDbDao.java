@@ -1,25 +1,21 @@
 package com.fede.ct.v2.dao.impl;
 
-import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.model._public.Ticker;
 import com.fede.ct.v2.common.model._public.Ticker.TickerPrice;
 import com.fede.ct.v2.common.model._public.Ticker.TickerVolume;
 import com.fede.ct.v2.common.model._public.Ticker.TickerWholePrice;
 import com.fede.ct.v2.common.util.OutFormat;
-import com.fede.ct.v2.common.util.StreamUtil;
 import com.fede.ct.v2.dao.ITickersDao;
-import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Created by f.barbano on 05/11/2017.
  */
-public class TickersDbDao extends AbstractDbDao implements ITickersDao {
+public class TickersDbDao extends AbstractDbDao2 implements ITickersDao {
 
 	private static final String INSERT_NEW_PREFIX = "INSERT INTO TICKERS (CALL_TIME, PAIR_NAME, ASK_PRICE, ASK_WHOLE_LOT_VOLUME, ASK_LOT_VOLUME, BID_PRICE, " +
 												   "BID_WHOLE_LOT_VOLUME, BID_LOT_VOLUME, LAST_CLOSED_PRICE, LAST_CLOSED_LOT_VOLUME, VOLUME_TODAY, VOLUME_LAST_24, " +
@@ -34,113 +30,93 @@ public class TickersDbDao extends AbstractDbDao implements ITickersDao {
 
 	@Override
 	public void insertTickers(List<Ticker> tickers, long callTime) {
-		String query = INSERT_NEW_PREFIX + StreamUtil.join(tickers, ",", t -> tickerToValues(callTime, t));
-		super.performUpdate(query);
+		List<Query> insQueries = createJdbcQueries(INSERT_NEW_PREFIX, tickers.size(), 22, tickers, getTickerFunctions(callTime));
+		super.performTransaction(insQueries);
 	}
 
 	@Override
 	public Ticker selectAskPriceAndAverageLast24(String pairName) {
-		String query = SELECT_ASK_PRICE_AVERAGE_LAST24;
-		try(PreparedStatement ps = createPreparedStatement(query, pairName);
-			ResultSet rs = ps.executeQuery()) {
-
-			Ticker toRet = null;
-			if(rs != null && rs.next()) {
-				toRet = parseTicker(rs, query);
-			}
-			return toRet;
-
-		} catch (SQLException e) {
-			throw new TechnicalException(e, "Error performing select [query=%s, pairName=%s]", query, pairName);
-		}
+		Query query = new Query(SELECT_ASK_PRICE_AVERAGE_LAST24, pairName);
+		List<InquiryResult> results = super.performInquiry(query);
+		return results.isEmpty() ? null : parseTicker(results.get(0));
 	}
 
-	private String tickerToValues(Long callTime, Ticker ticker) {
-		return String.format("(%d, '%s', %s, %d, %s, %s, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-			callTime,
-			ticker.getPairName(),
-			toJdbcString(ticker.getAsk().getPrice()),
-			ticker.getAsk().getWholeLotVolume(),
-			toJdbcString(ticker.getAsk().getLotVolume()),
-			toJdbcString(ticker.getBid().getPrice()),
-			ticker.getBid().getWholeLotVolume(),
-			toJdbcString(ticker.getBid().getLotVolume()),
-			toJdbcString(ticker.getLastTradeClosed().getPrice()),
-			toJdbcString(ticker.getLastTradeClosed().getLotVolume()),
-			toJdbcString(ticker.getVolume().getToday()),
-			toJdbcString(ticker.getVolume().getLast24Hours()),
-			toJdbcString(ticker.getWeightedAverageVolume().getToday()),
-			toJdbcString(ticker.getWeightedAverageVolume().getLast24Hours()),
-			toJdbcString(ticker.getTradesNumber().getToday()),
-			toJdbcString(ticker.getTradesNumber().getLast24Hours()),
-			toJdbcString(ticker.getLow().getToday()),
-			toJdbcString(ticker.getLow().getLast24Hours()),
-			toJdbcString(ticker.getHigh().getToday()),
-			toJdbcString(ticker.getHigh().getLast24Hours()),
-			toJdbcString(ticker.getOpeningPrice()),
-			OutFormat.toStringLDT(callTime, "yyyyMMddHHmmss")
-		);
+	private List<Function<Ticker, Object>> getTickerFunctions(Long callTime) {
+		List<Function<Ticker, Object>> functions = new ArrayList<>();
+		functions.add(t -> callTime);
+		functions.add(t -> t.getPairName());
+		functions.add(t -> t.getAsk().getPrice());
+		functions.add(t -> t.getAsk().getWholeLotVolume());
+		functions.add(t -> t.getAsk().getLotVolume());
+		functions.add(t -> t.getBid().getPrice());
+		functions.add(t -> t.getBid().getWholeLotVolume());
+		functions.add(t -> t.getBid().getLotVolume());
+		functions.add(t -> t.getLastTradeClosed().getPrice());
+		functions.add(t -> t.getLastTradeClosed().getLotVolume());
+		functions.add(t -> t.getVolume().getToday());
+		functions.add(t -> t.getVolume().getLast24Hours());
+		functions.add(t -> t.getWeightedAverageVolume().getToday());
+		functions.add(t -> t.getWeightedAverageVolume().getLast24Hours());
+		functions.add(t -> t.getTradesNumber().getToday());
+		functions.add(t -> t.getTradesNumber().getLast24Hours());
+		functions.add(t -> t.getLow().getToday());
+		functions.add(t -> t.getLow().getLast24Hours());
+		functions.add(t -> t.getHigh().getToday());
+		functions.add(t -> t.getHigh().getLast24Hours());
+		functions.add(t -> t.getOpeningPrice());
+		functions.add(t -> OutFormat.toStringLDT(callTime, "yyyyMMddHHmmss"));
+		return functions;
 	}
 
-	private Ticker parseTicker(ResultSet rs, String querySelect) {
-		String pairName = null;
+	private Ticker parseTicker(InquiryResult res) {
+		Ticker t = new Ticker();
+		t.setCallTime(res.getLong("CALL_TIME"));
+		t.setPairName(res.getString("PAIR_NAME"));
+		t.setOpeningPrice(res.getBigDecimal("OPENING_PRICE"));
 
-		try {
-			String strFields = StringUtils.substringBetween(querySelect.toUpperCase(), "SELECT", "FROM");
+		TickerWholePrice ask = new TickerWholePrice();
+		ask.setPrice(res.getBigDecimal("ASK_PRICE"));
+		ask.setWholeLotVolume(res.getInteger("ASK_WHOLE_LOT_VOLUME"));
+		ask.setLotVolume(res.getBigDecimal("ASK_LOT_VOLUME"));
+		t.setAsk(ask);
 
-			Ticker t = new Ticker();
-			if(strFields.contains("CALL_TIME"))		t.setCallTime(rs.getLong("CALL_TIME"));
-			if(strFields.contains("PAIR_NAME"))		pairName = rs.getString("PAIR_NAME");
-			if(strFields.contains("OPENING_PRICE"))		t.setOpeningPrice(rs.getBigDecimal("OPENING_PRICE"));
-			t.setPairName(pairName);
+		TickerWholePrice bid = new TickerWholePrice();
+		bid.setPrice(res.getBigDecimal("BID_PRICE"));
+		bid.setWholeLotVolume(res.getInteger("BID_WHOLE_LOT_VOLUME"));
+		bid.setLotVolume(res.getBigDecimal("BID_LOT_VOLUME"));
+		t.setBid(bid);
 
-			TickerWholePrice ask = new TickerWholePrice();
-			if(strFields.contains("ASK_PRICE"))		ask.setPrice(rs.getBigDecimal("ASK_PRICE"));
-			if(strFields.contains("ASK_WHOLE_LOT_VOLUME"))		ask.setWholeLotVolume(rs.getInt("ASK_WHOLE_LOT_VOLUME"));
-			if(strFields.contains("ASK_LOT_VOLUME"))		ask.setLotVolume(rs.getBigDecimal("ASK_LOT_VOLUME"));
-			t.setAsk(ask);
+		TickerPrice last = new TickerPrice();
+		last.setPrice(res.getBigDecimal("LAST_CLOSED_PRICE"));
+		last.setLotVolume(res.getBigDecimal("LAST_CLOSED_LOT_VOLUME"));
+		t.setLastTradeClosed(last);
 
-			TickerWholePrice bid = new TickerWholePrice();
-			if(strFields.contains("BID_PRICE"))		bid.setPrice(rs.getBigDecimal("BID_PRICE"));
-			if(strFields.contains("BID_WHOLE_LOT_VOLUME"))		bid.setWholeLotVolume(rs.getInt("BID_WHOLE_LOT_VOLUME"));
-			if(strFields.contains("BID_LOT_VOLUME"))		bid.setLotVolume(rs.getBigDecimal("BID_LOT_VOLUME"));
-			t.setBid(bid);
+		TickerVolume volume = new TickerVolume();
+		volume.setToday(res.getBigDecimal("VOLUME_TODAY"));
+		volume.setLast24Hours(res.getBigDecimal("VOLUME_LAST_24"));
+		t.setVolume(volume);
 
-			TickerPrice last = new TickerPrice();
-			if(strFields.contains("LAST_CLOSED_PRICE"))		last.setPrice(rs.getBigDecimal("LAST_CLOSED_PRICE"));
-			if(strFields.contains("LAST_CLOSED_LOT_VOLUME"))		last.setLotVolume(rs.getBigDecimal("LAST_CLOSED_LOT_VOLUME"));
-			t.setLastTradeClosed(last);
+		TickerVolume volWeighted = new TickerVolume();
+		volWeighted.setToday(res.getBigDecimal("VOLUME_WEIGHTED_AVERAGE_TODAY"));
+		volWeighted.setLast24Hours(res.getBigDecimal("VOLUME_WEIGHTED_AVERAGE_LAST_24"));
+		t.setWeightedAverageVolume(volWeighted);
 
-			TickerVolume volume = new TickerVolume();
-			if(strFields.contains("VOLUME_TODAY"))		volume.setToday(rs.getBigDecimal("VOLUME_TODAY"));
-			if(strFields.contains("VOLUME_LAST_24"))		volume.setLast24Hours(rs.getBigDecimal("VOLUME_LAST_24"));
-			t.setVolume(volume);
+		TickerVolume tradeNum = new TickerVolume();
+		tradeNum.setToday(res.getBigDecimal("NUMBER_TRADES_TODAY"));
+		tradeNum.setLast24Hours(res.getBigDecimal("NUMBER_TRADES_LAST_24"));
+		t.setTradesNumber(tradeNum);
 
-			TickerVolume volWeighted = new TickerVolume();
-			if(strFields.contains("VOLUME_WEIGHTED_AVERAGE_TODAY"))		volWeighted.setToday(rs.getBigDecimal("VOLUME_WEIGHTED_AVERAGE_TODAY"));
-			if(strFields.contains("VOLUME_WEIGHTED_AVERAGE_LAST_24"))		volWeighted.setLast24Hours(rs.getBigDecimal("VOLUME_WEIGHTED_AVERAGE_LAST_24"));
-			t.setWeightedAverageVolume(volWeighted);
+		TickerVolume low = new TickerVolume();
+		low.setToday(res.getBigDecimal("LOW_TODAY"));
+		low.setLast24Hours(res.getBigDecimal("LOW_LAST_24"));
+		t.setLow(low);
 
-			TickerVolume tradeNum = new TickerVolume();
-			if(strFields.contains("NUMBER_TRADES_TODAY"))		tradeNum.setToday(rs.getBigDecimal("NUMBER_TRADES_TODAY"));
-			if(strFields.contains("NUMBER_TRADES_LAST_24"))		tradeNum.setLast24Hours(rs.getBigDecimal("NUMBER_TRADES_LAST_24"));
-			t.setTradesNumber(tradeNum);
+		TickerVolume high = new TickerVolume();
+		high.setToday(res.getBigDecimal("HIGH_TODAY"));
+		high.setLast24Hours(res.getBigDecimal("HIGH_LAST_24"));
+		t.setHigh(high);
 
-			TickerVolume low = new TickerVolume();
-			if(strFields.contains("LOW_TODAY"))		low.setToday(rs.getBigDecimal("LOW_TODAY"));
-			if(strFields.contains("LOW_LAST_24"))		low.setLast24Hours(rs.getBigDecimal("LOW_LAST_24"));
-			t.setLow(low);
-
-			TickerVolume high = new TickerVolume();
-			if(strFields.contains("HIGH_TODAY"))		high.setToday(rs.getBigDecimal("HIGH_TODAY"));
-			if(strFields.contains("HIGH_LAST_24"))		high.setLast24Hours(rs.getBigDecimal("HIGH_LAST_24"));
-			t.setHigh(high);
-
-			return t;
-
-		} catch (SQLException e) {
-			throw new TechnicalException(e, "Unable to parse ticker");
-		}
+		return t;
 	}
 
 }
