@@ -46,6 +46,7 @@ public final class CryptoMain {
 	static {
 		String jarName = CryptoMain.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 		String usage = "USAGE\n";
+		usage += String.format("   java -jar %s REGISTER_USER <username> <file containing kraken api & secret\n", jarName);
 		usage += String.format("   java -jar %s [PUBLIC]\n", jarName);
 		usage += String.format("   java -jar %s PRIVATE  <private config file path>\n", jarName);
 		usage += String.format("   java -jar %s STRATEGY  <strategy config file path>", jarName);
@@ -53,40 +54,36 @@ public final class CryptoMain {
 	}
 
 	public static void main(String[] args) {
-		long startMain = System.currentTimeMillis();
-
-		configPublic.loadConfigFile(Const.DEFAULT_PUBLIC_CONFIG_PATH);
-
-		// check user input
-		RunType runType = checkInputArgs(args);
-
-		if(runType == REGISTER_USER) {
-			manageUserRegistration(args[1].toUpperCase(), args[2]);
-
-		} else {
-			// review now only public context
-			CryptoContext ctx = LoginService.createContext();
-
-			// init logger
+		try {
+			configPublic.loadConfigFile(Const.DEFAULT_PUBLIC_CONFIG_PATH);
 			initLogger();
-
-			// log configs
 			logger.config("CONFIGURATION:\n%s", configPublic);
 
-			ICryptoService service;
+			// check user input
+			RunType runType = checkInputArgs(args);
+			logger.info("Run type: %s", runType);
 
-			switch (runType) {
-				case PUBLIC:
-					service = CryptoServiceFactory.getServicePublic(ctx);
-					break;
-				default:
-					throw new TechnicalException("Service not yet implemented for run typology = %s", runType);
+			if (runType == REGISTER_USER) {
+				manageUserRegistration(args[1].toUpperCase(), args[2]);
+
+			} else {
+				// review now only public context
+				CryptoContext ctx = LoginService.createContext();
+
+				ICryptoService service;
+				switch (runType) {
+					case PUBLIC:
+						service = CryptoServiceFactory.getServicePublic(ctx);
+						break;
+					default:
+						throw new TechnicalException("Service not yet implemented for run typology = %s", runType);
+				}
+
+				service.startEngine();
 			}
-
-			service.startEngine();
+		} catch(TechnicalException ex) {
+			logger.error("Error found: %s", ex.getMessage());
 		}
-
-		logger.info("End %s run. Elapsed: %s", runType, OutFormat.toStringElapsed(startMain, System.currentTimeMillis(), false));
 	}
 
 	private static CryptoContext manageUserRegistration(String userName, String krakenConfigPath) {
@@ -103,13 +100,14 @@ public final class CryptoMain {
 			}
 
 			if(StringUtils.isBlank(apiKey)) {
-				throw new TechnicalException("Kraken Api key blank in file %s", krakenConfigPath);
+				throw new TechnicalException("No 'key' property found in file %s", krakenConfigPath);
 			}
 			if(StringUtils.isBlank(apiSecret)) {
-				throw new TechnicalException("Kraken Api secret blank in file %s", krakenConfigPath);
+				throw new TechnicalException("No 'secret' property found in file %s", krakenConfigPath);
 			}
 
 			CryptoContext ctx = LoginService.registerNewUser(userName, apiKey, apiSecret);
+			logger.info("New user registered %s", ctx.getUserCtx());
 			return ctx;
 
 		} catch (IOException e) {

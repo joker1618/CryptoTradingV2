@@ -23,9 +23,6 @@ public class LogService {
 	private Logger rootLogger;
 	private Level minLevel;
 	private boolean showStackTrace;
-//	private ConsoleHandler consoleHandler;
-//	private Map<Path,FileHandler> fileHandlerMap;
-
 
 	private LogService() {
 //		this.fileHandlerMap = new HashMap<>();

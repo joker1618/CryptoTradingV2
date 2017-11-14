@@ -58,7 +58,7 @@ public class LogFormatter extends Formatter {
 		}
 
 		if(showLevel) {
-			sb.append(String.format("%-7s\t", record.getLevel())).append(SEP);
+			sb.append(String.format("%-7s", record.getLevel())).append(SEP);
 		}
 
 		sb.append(message).append("\n");

@@ -41,4 +41,9 @@ public class UserCtx {
 	public void setApiSecret(String apiSecret) {
 		this.apiSecret = apiSecret;
 	}
+
+	@Override
+	public String toString() {
+		return String.format("[id=%d, name=%s, apiKey=%s, apiSecret=%s]", userId, userName, apiKey, apiSecret);
+	}
 }
