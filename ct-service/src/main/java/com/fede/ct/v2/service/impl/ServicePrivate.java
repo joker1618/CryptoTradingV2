@@ -1,6 +1,6 @@
 package com.fede.ct.v2.service.impl;
 
-import com.fede.ct.v2.common.config._public.IConfigPrivate;
+import com.fede.ct.v2.common.config._private.IConfigPrivate;
 import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.logger.LogService;
 import com.fede.ct.v2.common.logger.SimpleLog;
@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Created by f.barbano on 04/11/2017.
  */
-class ServicePrivate extends AbstractCryptoService implements ICryptoService {
+class ServicePrivate {/*extends AbstractCryptoService implements ICryptoService {
 
 	private static final SimpleLog logger = LogService.getLogger(ServicePrivate.class);
 	private static final int THREAD_POOL_SIZE = 1; // open orders, closed orders
@@ -91,5 +91,5 @@ class ServicePrivate extends AbstractCryptoService implements ICryptoService {
 			autoStopCounter.set(AUTOSTOP_COUNTER_SIZE);
 		}
 	}
-
+*/
 }

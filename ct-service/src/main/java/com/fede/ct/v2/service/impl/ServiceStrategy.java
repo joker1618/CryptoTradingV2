@@ -1,7 +1,7 @@
 package com.fede.ct.v2.service.impl;
 
-import com.fede.ct.v2.common.config._public.IConfigPrivate;
-import com.fede.ct.v2.common.config._public.IConfigStrategy;
+import com.fede.ct.v2.common.config._private.IConfigPrivate;
+import com.fede.ct.v2.common.config._trading.IConfigStrategy;
 import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.logger.LogService;
 import com.fede.ct.v2.common.logger.SimpleLog;
@@ -26,7 +26,7 @@ import java.util.concurrent.Executors;
 /**
  * Created by f.barbano on 07/11/2017.
  */
-public class ServiceStrategy extends AbstractCryptoService implements ICryptoService {
+public class ServiceStrategy {/*} extends AbstractCryptoService implements ICryptoService {
 
 	private static final SimpleLog logger = LogService.getLogger(ServiceStrategy.class);
 
@@ -133,4 +133,6 @@ public class ServiceStrategy extends AbstractCryptoService implements ICryptoSer
 			Thread.sleep(3000L);
 		}
 	}
+
+*/
 }
