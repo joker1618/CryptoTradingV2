@@ -27,8 +27,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-
-import static com.fede.ct.v2.common.context.RunType.*;
+import static com.fede.ct.v2.common.context.RunType.PRIVATE;
 import static com.fede.ct.v2.common.logger.LogService.LogServiceConfig;
 
 /**

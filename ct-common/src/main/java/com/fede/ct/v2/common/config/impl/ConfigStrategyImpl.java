@@ -1,7 +1,6 @@
 package com.fede.ct.v2.common.config.impl;
 
 import com.fede.ct.v2.common.config.IConfigStrategy;
-
 import com.fede.ct.v2.common.config.impl.ConfigKeys.StrategyKeys;
 
 import java.math.BigDecimal;

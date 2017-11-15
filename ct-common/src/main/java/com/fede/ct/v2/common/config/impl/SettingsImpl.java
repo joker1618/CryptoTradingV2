@@ -1,6 +1,5 @@
 package com.fede.ct.v2.common.config.impl;
 
-import com.fede.ct.v2.common.config.AbstractConfig;
 import com.fede.ct.v2.common.config.ISettings;
 import org.apache.commons.lang3.StringUtils;
 
@@ -8,7 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Level;
 
-import static com.fede.ct.v2.common.config.impl.ConfigKeys.*;
+import static com.fede.ct.v2.common.config.impl.ConfigKeys.CommonKeys;
 
 
 /**

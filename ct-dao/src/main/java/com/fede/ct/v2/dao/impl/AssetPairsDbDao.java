@@ -10,7 +10,6 @@ import com.fede.ct.v2.common.util.StreamUtil;
 import com.fede.ct.v2.dao.IAssetPairsDao;
 
 import java.math.BigDecimal;
-import java.sql.Connection;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;

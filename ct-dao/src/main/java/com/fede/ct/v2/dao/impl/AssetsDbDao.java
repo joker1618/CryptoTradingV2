@@ -5,7 +5,6 @@ import com.fede.ct.v2.common.model._public.Asset;
 import com.fede.ct.v2.common.util.StreamUtil;
 import com.fede.ct.v2.dao.IAssetsDao;
 
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;

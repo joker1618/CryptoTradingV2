@@ -1,7 +1,6 @@
 package com.fede.ct.v2.common.config.impl;
 
 import com.fede.ct.v2.common.exception.TechnicalException;
-import com.fede.ct.v2.common.logger.LogService;
 import com.fede.ct.v2.common.util.StrUtil;
 import org.apache.commons.lang3.StringUtils;
 

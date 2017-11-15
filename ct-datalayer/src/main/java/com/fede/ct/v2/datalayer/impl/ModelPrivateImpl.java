@@ -3,7 +3,6 @@ package com.fede.ct.v2.datalayer.impl;
 import com.fede.ct.v2.common.model._private.AccountBalance;
 import com.fede.ct.v2.common.model._private.OrderInfo;
 import com.fede.ct.v2.dao.IAccountBalanceDao;
-import com.fede.ct.v2.dao.IAssetsDao;
 import com.fede.ct.v2.dao.IOrdersDao;
 import com.fede.ct.v2.dao.IPropertiesDao;
 import com.fede.ct.v2.datalayer.IModelPrivate;

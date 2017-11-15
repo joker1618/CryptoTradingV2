@@ -1,17 +1,5 @@
 package com.fede.ct.v2.dao.impl;
 
-import com.fede.ct.v2.common.exception.TechnicalException;
-import com.fede.ct.v2.common.logger.LogService;
-import com.fede.ct.v2.common.logger.SimpleLog;
-import com.fede.ct.v2.common.util.OutFormat;
-
-import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Arrays;
-
 /**
  * Created by f.barbano on 02/11/2017.
  */

@@ -1,19 +1,5 @@
 package com.fede.ct.v2.datalayer.impl;
 
-import com.fede.ct.v2.common.model._private.OrderInfo;
-import com.fede.ct.v2.common.model._public.Asset;
-import com.fede.ct.v2.common.model._public.AssetPair;
-import com.fede.ct.v2.common.model._public.Ticker;
-import com.fede.ct.v2.dao.IAssetPairsDao;
-import com.fede.ct.v2.dao.IAssetsDao;
-import com.fede.ct.v2.dao.IOrdersDao;
-import com.fede.ct.v2.dao.ITickersDao;
-import com.fede.ct.v2.datalayer.IDataModel;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-
 /**
  * Created by f.barbano on 05/11/2017.
  */

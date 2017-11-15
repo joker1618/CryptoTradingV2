@@ -1,8 +1,7 @@
 package com.fede.ct.v2.common.config.impl;
 
-import com.fede.ct.v2.common.config.AbstractConfig;
-import com.fede.ct.v2.common.config.impl.ConfigKeys.PrivateKeys;
 import com.fede.ct.v2.common.config.IConfigPrivate;
+import com.fede.ct.v2.common.config.impl.ConfigKeys.PrivateKeys;
 
 /**
  * Created by f.barbano on 06/11/2017.

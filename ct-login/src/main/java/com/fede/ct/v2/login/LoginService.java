@@ -1,7 +1,6 @@
 package com.fede.ct.v2.login;
 
 import com.fede.ct.v2.common.config.ISettings;
-import com.fede.ct.v2.common.config.IConfigPublic;
 import com.fede.ct.v2.common.config.impl.ConfigService;
 import com.fede.ct.v2.common.context.CryptoContext;
 import com.fede.ct.v2.common.context.RunType;

@@ -1,7 +1,6 @@
 package com.fede.ct.v2.dao.impl;
 
 import com.fede.ct.v2.common.context.CryptoContext;
-import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.model._private.OrderInfo;
 import com.fede.ct.v2.common.model._private.OrderInfo.OrderDescr;
 import com.fede.ct.v2.common.model.types.*;
@@ -9,13 +8,7 @@ import com.fede.ct.v2.common.util.StrUtil;
 import com.fede.ct.v2.common.util.StreamUtil;
 import com.fede.ct.v2.dao.IOrdersDao;
 
-import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 

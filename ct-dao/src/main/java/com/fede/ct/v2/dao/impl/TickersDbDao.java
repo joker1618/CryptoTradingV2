@@ -8,7 +8,6 @@ import com.fede.ct.v2.common.model._public.Ticker.TickerWholePrice;
 import com.fede.ct.v2.common.util.OutFormat;
 import com.fede.ct.v2.dao.ITickersDao;
 
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;

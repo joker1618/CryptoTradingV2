@@ -1,11 +1,5 @@
 package com.fede.ct.v2.datalayer.impl;
 
-import com.fede.ct.v2.common.logger.LogService;
-import com.fede.ct.v2.common.logger.SimpleLog;
-import com.fede.ct.v2.dao.IPropertiesDao;
-import com.fede.ct.v2.dao.IUsersDao;
-import com.fede.ct.v2.datalayer.IContextModel;
-
 /**
  * Created by f.barbano on 06/11/2017.
  */

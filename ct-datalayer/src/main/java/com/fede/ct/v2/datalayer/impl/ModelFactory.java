@@ -4,12 +4,8 @@ import com.fede.ct.v2.common.context.CryptoContext;
 import com.fede.ct.v2.common.logger.LogService;
 import com.fede.ct.v2.common.logger.SimpleLog;
 import com.fede.ct.v2.dao.impl.*;
-import com.fede.ct.v2.datalayer.IContextModel;
-import com.fede.ct.v2.datalayer.IDataModel;
 import com.fede.ct.v2.datalayer.IModelPrivate;
 import com.fede.ct.v2.datalayer.IModelPublic;
-
-import java.sql.Connection;
 
 /**
  * Created by f.barbano on 05/11/2017.
