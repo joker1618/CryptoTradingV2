@@ -1,5 +1,6 @@
 package com.fede.ct.v2.kraken;
 
+import com.fede.ct.v2.common.model._private.AccountBalance;
 import com.fede.ct.v2.common.model._private.OrderInfo;
 import com.fede.ct.v2.kraken.exception.KrakenCallError;
 import com.fede.ct.v2.kraken.exception.KrakenException;
@@ -15,4 +16,6 @@ public interface IKrakenPrivate {
 
 	List<OrderInfo> getClosedOrders() throws KrakenException, KrakenCallError;
 
+	List<AccountBalance> getAccountBalances() throws KrakenException, KrakenCallError;
+	
 }

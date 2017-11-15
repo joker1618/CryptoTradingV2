@@ -1,5 +1,6 @@
 package com.fede.ct.v2.datalayer;
 
+import com.fede.ct.v2.common.model._private.AccountBalance;
 import com.fede.ct.v2.common.model._private.OrderInfo;
 
 import java.util.List;
@@ -14,5 +15,5 @@ public interface IModelPrivate {
 
 	void updateOrders(List<OrderInfo> orders);
 
-
+	void addAccountBalance(List<AccountBalance> accountBalanceList);
 }

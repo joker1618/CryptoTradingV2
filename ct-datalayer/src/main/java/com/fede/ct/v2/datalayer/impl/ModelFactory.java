@@ -30,6 +30,7 @@ public class ModelFactory {
 		ModelPrivateImpl model = new ModelPrivateImpl();
 		model.setPropertiesDao(new PropertiesDbDao(ctx));
 		model.setOrdersDao(new OrdersDbDao(ctx));
+		model.setAccountBalanceDao(new AccountBalanceDbDao(ctx));
 		return model;
 	}
 

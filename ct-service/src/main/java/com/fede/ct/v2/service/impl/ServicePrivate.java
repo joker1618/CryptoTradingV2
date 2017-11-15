@@ -5,6 +5,7 @@ import com.fede.ct.v2.common.config.impl.ConfigService;
 import com.fede.ct.v2.common.context.CryptoContext;
 import com.fede.ct.v2.common.logger.LogService;
 import com.fede.ct.v2.common.logger.SimpleLog;
+import com.fede.ct.v2.common.model._private.AccountBalance;
 import com.fede.ct.v2.common.model._private.OrderInfo;
 import com.fede.ct.v2.datalayer.IModelPrivate;
 import com.fede.ct.v2.datalayer.impl.ModelFactory;
@@ -17,7 +18,6 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by f.barbano on 04/11/2017.
@@ -32,35 +32,32 @@ class ServicePrivate extends AbstractService implements ICryptoService {
 	private final IModelPrivate modelPrivate;
 
 	private DaemonState daemonState;
-	private int numIdleNoLog;
-	private int counterIdleNoLog;
 
 	ServicePrivate(CryptoContext ctx) {
 		super(ctx);
 		this.privateCaller = KrakenFactory.getPrivateCaller(ctx.getUserCtx());
 		this.modelPrivate = ModelFactory.createModelPrivate(ctx);
-		this.daemonState = new DaemonState(configPrivate.getOrdersAutostopOpen(), configPrivate.getOrdersAutostopClosed());
 	}
 
 	@Override
 	public synchronized void startEngine() {
 		logger.debug("Start Kraken private engine");
 
+		int autostopOpen = configPrivate.getOrdersAutostopOpen();
+		int autostopClosed = configPrivate.getOrdersAutostopClosed();
+		long freqDwnOrders = configPrivate.getCallRateOrders();
+		int numLogIdle = (int)(60 / freqDwnOrders);
+		this.daemonState = new DaemonState(autostopOpen, autostopClosed, numLogIdle);
+
+		callAccountBalance();
 
 		// Schedule jobs
-		long freqDwnOrders = configPrivate.getCallRateOrders();
-
-		numIdleNoLog = (int)(30 / freqDwnOrders);
-		counterIdleNoLog = 0;
-
 		ScheduledExecutorService executorService = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
-		executorService.scheduleAtFixedRate(this::downloadOrders, freqDwnOrders, freqDwnOrders, TimeUnit.SECONDS);
+		executorService.scheduleWithFixedDelay(this::downloadOrders, freqDwnOrders, freqDwnOrders, TimeUnit.SECONDS);
 
 	}
 
 	private void downloadOrders() {
-		logger.info("%s", daemonState);
-		
 		if(modelPrivate.isDownloadOrdersEnabled()) {
 			try {
 				List<OrderInfo> openOrders = privateCaller.getOpenOrders();
@@ -71,9 +68,14 @@ class ServicePrivate extends AbstractService implements ICryptoService {
 				modelPrivate.updateOrders(orders);
 				logger.info("Orders downloaded: %d open, %d closed", openOrders.size(), closedOrders.size());
 
+				daemonState.updateStateActive(openOrders.size(), closedOrders.size());
+
+				if(daemonState.isNeedAccountBalanceCall()) {
+					callAccountBalance();
+				}
+
 				// auto-stop management
-				daemonState.updateState(openOrders.size(), closedOrders.size());
-				if(daemonState.isAutostopDownloadOrders()) {
+				if(daemonState.isAutoStopDownloadOrders()) {
 					daemonState.reset();
 					modelPrivate.setDownloadOrdersEnabled(false);
 					logger.info("Stop download orders: no open for %d, no closed for %d", daemonState.numNoOpen, daemonState.numEqualsClosed);
@@ -84,52 +86,97 @@ class ServicePrivate extends AbstractService implements ICryptoService {
 				logger.error(ex, "Exception caught while downloading open/closed orders");
 			}
 		} else {
-				logger.info("else");
-			counterIdleNoLog++;
-			if(counterIdleNoLog == numIdleNoLog) {
+			daemonState.updateStateIdle();
+			if(daemonState.isLogIdle()) {
+				daemonState.reset();
 				logger.info("Idle");
-				counterIdleNoLog = 0;
 			}
 		}
 	}
 
+	private void callAccountBalance() {
+		try {
+			List<AccountBalance> abList = privateCaller.getAccountBalances();
+			if(!abList.isEmpty()) {
+				modelPrivate.addAccountBalance(abList);
+			}
+			logger.info("Account balance downloaded: %d assets", abList.size());
+
+		} catch(Exception ex) {
+			logger.error(ex, "Exception caught while downloading open/closed orders");
+		}
+	}
+
 	private static class DaemonState {
+		int numLogIdle;
+		int counterLogIdle;
 		int numNoOpen;
 		int numEqualsClosed;
 		int counterNoOpen;
 		int counterEqualsClosed;
+		int prevOpenNum;
 		int prevClosedNum;
+		boolean needAccountBalanceCall;
 
-		private DaemonState(int numNoOpen, int numEqualsClosed) {
+		private DaemonState(int numNoOpen, int numEqualsClosed, int numLogIdle) {
 			this.numNoOpen = numNoOpen;
 			this.numEqualsClosed = numEqualsClosed;
+			this.numLogIdle = numLogIdle;
 			reset();
 		}
 
-		private synchronized void updateState(int numOpen, int numClosed) {
+		private synchronized void updateStateActive(int numOpen, int numClosed) {
+			counterLogIdle = 0;
+
+			boolean resOpen = prevOpenNum != -1 && prevOpenNum != numOpen;
+			boolean resClosed = prevClosedNum != -1 && prevClosedNum != numClosed;
+			needAccountBalanceCall = resOpen || resClosed;
+
 			if(numOpen == 0 && numClosed == prevClosedNum){
 				counterNoOpen++;
 				counterEqualsClosed++;
 			} else {
 				counterNoOpen = 0;
 				counterEqualsClosed = 0;
-				prevClosedNum = numClosed;
 			}
+
+			prevOpenNum = numOpen;
+			prevClosedNum = numClosed;
 		}
 
-		private synchronized boolean isAutostopDownloadOrders() {
+		private synchronized void updateStateIdle() {
+			counterLogIdle++;
+			counterNoOpen = 0;
+			counterEqualsClosed = 0;
+			prevOpenNum = -1;
+			prevClosedNum = -1;
+			needAccountBalanceCall = false;
+		}
+
+		private synchronized boolean isAutoStopDownloadOrders() {
 			return counterNoOpen >= numNoOpen && counterEqualsClosed >= numEqualsClosed;
+		}
+
+		private synchronized boolean isLogIdle() {
+			return counterLogIdle >= numLogIdle;
 		}
 
 		private synchronized void reset() {
 			this.counterNoOpen = 0;
 			this.counterEqualsClosed = 0;
+			this.prevOpenNum = -1;
 			this.prevClosedNum = -1;
+			this.counterLogIdle = 0;
+			this.needAccountBalanceCall = false;
+		}
+
+		private boolean isNeedAccountBalanceCall() {
+			return needAccountBalanceCall;
 		}
 
 		@Override
 		public String toString() {
-			return String.format("DaemonState [open=%d/%d, closed=%d/%d, last closed siez=%d]", counterNoOpen, numNoOpen, counterEqualsClosed, numEqualsClosed, prevClosedNum);
+			return String.format("DaemonState [open=%d/%d, closed=%d/%d, last closed size=%d]", counterNoOpen, numNoOpen, counterEqualsClosed, numEqualsClosed, prevClosedNum);
 		}
 	}
 

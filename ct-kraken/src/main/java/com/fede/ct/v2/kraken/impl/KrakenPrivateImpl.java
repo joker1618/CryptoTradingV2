@@ -1,5 +1,7 @@
 package com.fede.ct.v2.kraken.impl;
 
+import com.fede.ct.v2.common.config.ConfigKeys;
+import com.fede.ct.v2.common.model._private.AccountBalance;
 import com.fede.ct.v2.common.model._private.OrderInfo;
 import com.fede.ct.v2.kraken.IKrakenPrivate;
 import com.fede.ct.v2.kraken.exception.KrakenCallError;
@@ -28,6 +30,13 @@ class KrakenPrivateImpl extends AbstractKrakenCaller implements IKrakenPrivate {
 	public List<OrderInfo> getClosedOrders() throws KrakenException, KrakenCallError {
 		JsonToModel jm = super.performKrakenCall(KrakenMethod.CLOSED_ORDERS);
 		return jm.parseClosedOrders();
+	}
+
+	@Override
+	public List<AccountBalance> getAccountBalances() throws KrakenException, KrakenCallError {
+		long callTime = System.currentTimeMillis();
+		JsonToModel jm = super.performKrakenCall(KrakenMethod.BALANCE);
+		return jm.parseAccountBalance(callTime);
 	}
 
 

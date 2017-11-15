@@ -1,5 +1,6 @@
 package com.fede.ct.v2.kraken.impl;
 
+import com.fede.ct.v2.common.model._private.AccountBalance;
 import com.fede.ct.v2.common.model._private.OrderInfo;
 import com.fede.ct.v2.common.model._private.OrderInfo.OrderDescr;
 import com.fede.ct.v2.common.model._public.Asset;
@@ -134,6 +135,21 @@ class JsonToModel {
 		}
 		out.setTxIDs(getArrayString(jdescr, "txid"));
 		return out;
+	}
+
+	public List<AccountBalance> parseAccountBalance(long callTime) {
+		List<AccountBalance> abList = new ArrayList<>();
+		result.entrySet().forEach(entry -> {
+			String assetClass = entry.getKey();
+			Double balance = Double.parseDouble(jsonValueToString(entry.getValue()));
+			AccountBalance ab = new AccountBalance();
+			ab.setCallTime(callTime);
+			ab.setAssetName(assetClass);
+			ab.setBalance(BigDecimal.valueOf(balance));
+			abList.add(ab);
+		});
+
+		return abList;
 	}
 
 
