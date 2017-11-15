@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Created by f.barbano on 05/11/2017.
  */
-public class PropertiesDbDao extends AbstractDbDao2 implements IPropertiesDao {
+public class PropertiesDbDao extends AbstractDbDao implements IPropertiesDao {
 
 	private static final String SELECT_PROPERTY = "SELECT PROP_VALUE FROM CT_PROPERTIES WHERE USER_ID = ? AND PROP_NAME = ?";
 	private static final String SET_PROPERTY = "REPLACE INTO CT_PROPERTIES (USER_ID, PROP_NAME, PROP_VALUE) VALUES (?,?,?)";

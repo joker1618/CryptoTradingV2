@@ -15,7 +15,7 @@ import java.util.function.Function;
 /**
  * Created by f.barbano on 05/11/2017.
  */
-public class TickersDbDao extends AbstractDbDao2 implements ITickersDao {
+public class TickersDbDao extends AbstractDbDao implements ITickersDao {
 
 	private static final String UPDATE_VALIDS = "UPDATE TICKERS SET VALID = 0 WHERE VALID = 1";
 	private static final String INSERT_NEW_PREFIX = "INSERT INTO TICKERS (CALL_TIME, PAIR_NAME, ASK_PRICE, ASK_WHOLE_LOT_VOLUME, ASK_LOT_VOLUME, BID_PRICE, " +

@@ -11,7 +11,7 @@ import java.util.function.Function;
 /**
  * Created by f.barbano on 15/11/2017.
  */
-public class AccountBalanceDbDao extends AbstractDbDao2 implements IAccountBalanceDao {
+public class AccountBalanceDbDao extends AbstractDbDao implements IAccountBalanceDao {
 
 	private static final String INVALITE_UPDATE = "UPDATE ACCOUNT_BALANCE SET VALID = 0 WHERE VALID = 1";
 	private static final String INSERT_NEW_VALUES = "INSERT INTO ACCOUNT_BALANCE (USER_ID, CALL_TIME, ASSET_NAME, BALANCE, VALID) VALUES ";

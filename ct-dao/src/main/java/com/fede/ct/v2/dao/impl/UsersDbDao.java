@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Created by f.barbano on 06/11/2017.
  */
-public class UsersDbDao extends AbstractDbDao2 implements IUsersDao {
+public class UsersDbDao extends AbstractDbDao implements IUsersDao {
 
 	private static final SimpleLog logger = LogService.getLogger(UsersDbDao.class);
 

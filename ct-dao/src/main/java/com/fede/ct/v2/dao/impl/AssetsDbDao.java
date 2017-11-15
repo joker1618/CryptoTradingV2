@@ -12,7 +12,7 @@ import java.util.function.Function;
 /**
  * Created by f.barbano on 05/11/2017.
  */
-public class AssetsDbDao extends AbstractDbDao2 implements IAssetsDao {
+public class AssetsDbDao extends AbstractDbDao implements IAssetsDao {
 
 	private static final String SELECT_VALID_ASSETS = "SELECT ASSET_NAME, A_CLASS, ALT_NAME, DECIMALS, DISPLAY_DECIMALS FROM ASSETS WHERE EXPIRE_TIME = 0 ORDER BY ASSET_NAME";
 	private static final String UPDATE_EXPIRE_TIME = "UPDATE ASSETS SET EXPIRE_TIME = ? WHERE EXPIRE_TIME = 0";
