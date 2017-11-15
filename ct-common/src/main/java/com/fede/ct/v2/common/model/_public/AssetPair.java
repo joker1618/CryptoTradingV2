@@ -37,6 +37,12 @@ public class AssetPair {
 		this.fees = new ArrayList<>();
 		this.feesMaker = new ArrayList<>();
 	}
+	public AssetPair(String pairName) {
+		this.leverageBuy = new ArrayList<>();
+		this.leverageSell = new ArrayList<>();
+		this.fees = new ArrayList<>();
+		this.feesMaker = new ArrayList<>();
+	}
 
 	@Override
 	public boolean equals(Object o) {

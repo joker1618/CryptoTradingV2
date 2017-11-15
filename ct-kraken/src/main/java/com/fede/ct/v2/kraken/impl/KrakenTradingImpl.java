@@ -2,7 +2,7 @@ package com.fede.ct.v2.kraken.impl;
 
 import com.fede.ct.v2.common.model._trading.AddOrderIn;
 import com.fede.ct.v2.common.model._trading.AddOrderOut;
-import com.fede.ct.v2.kraken.IKrakenStrategy;
+import com.fede.ct.v2.kraken.IKrakenTrading;
 import com.fede.ct.v2.kraken.exception.KrakenCallError;
 import com.fede.ct.v2.kraken.exception.KrakenException;
 import com.fede.ct.v2.kraken.impl.api.KrakenApi;
@@ -14,9 +14,9 @@ import java.util.List;
 /**
  * Created by f.barbano on 04/11/2017.
  */
-class KrakenStrategyImpl extends AbstractKrakenCaller implements IKrakenStrategy {
+class KrakenTradingImpl extends AbstractKrakenCaller implements IKrakenTrading {
 
-	KrakenStrategyImpl(String key, String secret) {
+	KrakenTradingImpl(String key, String secret) {
 		super(new KrakenApi(key, secret));
 	}
 

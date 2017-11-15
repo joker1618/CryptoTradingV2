@@ -2,11 +2,8 @@ package com.fede.ct.v2.common.config.impl;
 
 import com.fede.ct.v2.common.config.AbstractConfig;
 import com.fede.ct.v2.common.config.IConfigPublic;
-import com.fede.ct.v2.common.exception.TechnicalException;
 
-import java.io.IOException;
-
-import static com.fede.ct.v2.common.config.ConfigKeys.*;
+import static com.fede.ct.v2.common.config.impl.ConfigKeys.*;
 
 /**
  * Created by f.barbano on 03/11/2017.

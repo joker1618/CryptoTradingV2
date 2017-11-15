@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by f.barbano on 04/11/2017.
  */
-class ServicePublic extends AbstractService implements ICryptoService {
+public class ServicePublic extends AbstractService implements ICryptoService {
 
 	private static final SimpleLog logger = LogService.getLogger(ServicePublic.class);
 	private static final int THREAD_POOL_SIZE = 3; // assets, asset pairs, tickers
@@ -40,7 +40,7 @@ class ServicePublic extends AbstractService implements ICryptoService {
 
 	private List<String> assetPairsNames = Collections.synchronizedList(new ArrayList<>());
 
-	ServicePublic(CryptoContext ctx) {
+	public ServicePublic(CryptoContext ctx) {
 		super(ctx);
 		krakenPublic = KrakenFactory.getPublicCaller();
 		modelPublic = ModelFactory.createModelPublic(ctx);

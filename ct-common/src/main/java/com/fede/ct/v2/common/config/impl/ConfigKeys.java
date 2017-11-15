@@ -1,4 +1,4 @@
-package com.fede.ct.v2.common.config;
+package com.fede.ct.v2.common.config.impl;
 
 /**
  * Created by f.barbano on 11/11/2017.
@@ -30,5 +30,15 @@ public class ConfigKeys {
 		public static final String CALL_RATE_ORDERS = "ct.private.kraken.call.rate.orders";
 		public static final String ORDERS_DOWNLOAD_AUTOSTOP_OPEN = "ct.private.orders.download.autostop.open.after";
 		public static final String ORDERS_DOWNLOAD_AUTOSTOP_CLOSED = "ct.private.orders.download.autostop.closed.after";
+	}
+
+	/* Strategy keys */
+	public static class StrategyKeys {
+		public static final String ASSET_PAIR = "ct.trading.assetPair";
+		public static final String NOTIONAL = "ct.trading.notional";
+		public static final String DELTA_PERC_BUY = "ct.trading.delta.perc.buy";
+		public static final String DELTA_PERC_SELL = "ct.trading.delta.perc.sell";
+		public static final String FEES_PERC_BUY = "ct.trading.fees.perc.buy";
+		public static final String FEES_PERC_SELL = "ct.trading.fees.perc.sell";
 	}
 }

@@ -22,20 +22,20 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by f.barbano on 04/11/2017.
  */
-class ServicePrivate extends AbstractService implements ICryptoService {
+public class ServicePrivate extends AbstractService implements ICryptoService {
 
 	private static final SimpleLog logger = LogService.getLogger(ServicePrivate.class);
 	private static final int THREAD_POOL_SIZE = 1; // open orders, closed orders
 
-	private final IKrakenPrivate privateCaller;
+	private final IKrakenPrivate krakenPrivate;
 	private final IConfigPrivate configPrivate = ConfigService.getConfigPrivate();
 	private final IModelPrivate modelPrivate;
 
 	private DaemonState daemonState;
 
-	ServicePrivate(CryptoContext ctx) {
+	public ServicePrivate(CryptoContext ctx) {
 		super(ctx);
-		this.privateCaller = KrakenFactory.getPrivateCaller(ctx.getUserCtx());
+		this.krakenPrivate = KrakenFactory.getPrivateCaller(ctx.getUserCtx());
 		this.modelPrivate = ModelFactory.createModelPrivate(ctx);
 	}
 
@@ -60,8 +60,8 @@ class ServicePrivate extends AbstractService implements ICryptoService {
 	private void downloadOrders() {
 		if(modelPrivate.isDownloadOrdersEnabled()) {
 			try {
-				List<OrderInfo> openOrders = privateCaller.getOpenOrders();
-				List<OrderInfo> closedOrders = privateCaller.getClosedOrders();
+				List<OrderInfo> openOrders = krakenPrivate.getOpenOrders();
+				List<OrderInfo> closedOrders = krakenPrivate.getClosedOrders();
 				List<OrderInfo> orders = new ArrayList<>();
 				orders.addAll(openOrders);
 				orders.addAll(closedOrders);
@@ -85,6 +85,7 @@ class ServicePrivate extends AbstractService implements ICryptoService {
 				daemonState.reset();
 				logger.error(ex, "Exception caught while downloading open/closed orders");
 			}
+			
 		} else {
 			daemonState.updateStateIdle();
 			if(daemonState.isLogIdle()) {
@@ -96,7 +97,7 @@ class ServicePrivate extends AbstractService implements ICryptoService {
 
 	private void callAccountBalance() {
 		try {
-			List<AccountBalance> abList = privateCaller.getAccountBalances();
+			List<AccountBalance> abList = krakenPrivate.getAccountBalances();
 			if(!abList.isEmpty()) {
 				modelPrivate.addAccountBalance(abList);
 			}

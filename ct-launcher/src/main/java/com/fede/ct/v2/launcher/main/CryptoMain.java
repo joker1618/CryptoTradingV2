@@ -1,7 +1,6 @@
 package com.fede.ct.v2.launcher.main;
 
 import com.fede.ct.v2.common.config.ISettings;
-import com.fede.ct.v2.common.config.IConfigPublic;
 import com.fede.ct.v2.common.config.impl.ConfigService;
 import com.fede.ct.v2.common.constants.Const;
 import com.fede.ct.v2.common.context.CryptoContext;
@@ -14,7 +13,8 @@ import com.fede.ct.v2.common.util.CheckUtils;
 import com.fede.ct.v2.common.util.Converter;
 import com.fede.ct.v2.login.LoginService;
 import com.fede.ct.v2.service.ICryptoService;
-import com.fede.ct.v2.service.impl.CryptoServiceFactory;
+import com.fede.ct.v2.service.impl.ServicePrivate;
+import com.fede.ct.v2.service.impl.ServicePublic;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -100,7 +100,7 @@ public final class CryptoMain {
 		}
 
 		CryptoContext ctx = LoginService.createContext();
-		ICryptoService service = CryptoServiceFactory.getServicePublic(ctx);
+		ICryptoService service = new ServicePublic(ctx);
 		service.startEngine();
 	}
 	private static void managePrivate(String[] args) {
@@ -115,7 +115,7 @@ public final class CryptoMain {
 		ConfigService.getConfigPrivate().loadConfigFromFile(configPath);
 
 		CryptoContext ctx = LoginService.createContext(PRIVATE, Converter.stringToInteger(args[1]));
-		ICryptoService service = CryptoServiceFactory.getServicePrivate(ctx);
+		ICryptoService service = new ServicePrivate(ctx);
 		service.startEngine();
 	}
 

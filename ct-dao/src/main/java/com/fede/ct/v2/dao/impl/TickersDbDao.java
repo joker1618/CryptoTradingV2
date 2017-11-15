@@ -18,12 +18,13 @@ import java.util.function.Function;
  */
 public class TickersDbDao extends AbstractDbDao2 implements ITickersDao {
 
+	private static final String UPDATE_VALIDS = "UPDATE TICKERS SET VALID = 0 WHERE VALID = 1";
 	private static final String INSERT_NEW_PREFIX = "INSERT INTO TICKERS (CALL_TIME, PAIR_NAME, ASK_PRICE, ASK_WHOLE_LOT_VOLUME, ASK_LOT_VOLUME, BID_PRICE, " +
 												   "BID_WHOLE_LOT_VOLUME, BID_LOT_VOLUME, LAST_CLOSED_PRICE, LAST_CLOSED_LOT_VOLUME, VOLUME_TODAY, VOLUME_LAST_24, " +
 												   "VOLUME_WEIGHTED_AVERAGE_TODAY, VOLUME_WEIGHTED_AVERAGE_LAST_24, NUMBER_TRADES_TODAY, NUMBER_TRADES_LAST_24, LOW_TODAY, " +
-												   "LOW_LAST_24, HIGH_TODAY, HIGH_LAST_24, OPENING_PRICE, GRAFANA_TIME) VALUES ";
+												   "LOW_LAST_24, HIGH_TODAY, HIGH_LAST_24, OPENING_PRICE, GRAFANA_TIME, VALID) VALUES ";
 
-	private static final String SELECT_ASK_PRICE_AVERAGE_LAST24 = "SELECT PAIR_NAME, ASK_PRICE, VOLUME_WEIGHTED_AVERAGE_LAST_24 FROM TICKERS WHERE PAIR_NAME = ? AND CALL_TIME = (SELECT MAX(CALL_TIME) FROM TICKERS)";
+//	private static final String SELECT_ASK_PRICE_AVERAGE_LAST24 = "SELECT PAIR_NAME, ASK_PRICE, VOLUME_WEIGHTED_AVERAGE_LAST_24 FROM TICKERS WHERE PAIR_NAME = ? AND CALL_TIME = (SELECT MAX(CALL_TIME) FROM TICKERS)";
 
 	public TickersDbDao(CryptoContext ctx) {
 		super(ctx);
@@ -31,16 +32,18 @@ public class TickersDbDao extends AbstractDbDao2 implements ITickersDao {
 
 	@Override
 	public void insertTickers(List<Ticker> tickers, long callTime) {
-		List<Query> insQueries = createJdbcQueries(INSERT_NEW_PREFIX, tickers.size(), 22, tickers, getTickerFunctions(callTime));
-		super.performTransaction(insQueries);
+		Query updateQuery = new Query(UPDATE_VALIDS);
+		List<Query> queries = createJdbcQueries(INSERT_NEW_PREFIX, tickers.size(), 23, tickers, getTickerFunctions(callTime));
+		queries.add(0, updateQuery);
+		super.performTransaction(queries);
 	}
-
-	@Override
-	public Ticker selectAskPriceAndAverageLast24(String pairName) {
-		Query query = new Query(SELECT_ASK_PRICE_AVERAGE_LAST24, pairName);
-		List<InquiryResult> results = super.performInquiry(query);
-		return results.isEmpty() ? null : parseTicker(results.get(0));
-	}
+//
+//	@Override
+//	public Ticker selectAskPriceAndAverageLast24(String pairName) {
+//		Query query = new Query(SELECT_ASK_PRICE_AVERAGE_LAST24, pairName);
+//		List<InquiryResult> results = super.performInquiry(query);
+//		return results.isEmpty() ? null : parseTicker(results.get(0));
+//	}
 
 	private List<Function<Ticker, Object>> getTickerFunctions(Long callTime) {
 		List<Function<Ticker, Object>> functions = new ArrayList<>();
@@ -66,6 +69,7 @@ public class TickersDbDao extends AbstractDbDao2 implements ITickersDao {
 		functions.add(t -> t.getHigh().getLast24Hours());
 		functions.add(t -> t.getOpeningPrice());
 		functions.add(t -> OutFormat.toStringLDT(callTime, "yyyyMMddHHmmss"));
+		functions.add(t -> 1);
 		return functions;
 	}
 

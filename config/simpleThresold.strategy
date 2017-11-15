@@ -1,0 +1,30 @@
+###################################
+#   SIMPLE THRESOLD STRATEGY
+#
+#   Acquisto (limit):
+#   buyPrice = ticker(askPrice) * (1.0 - buyPerc)
+#   emetto ordine se:  buyPrice <= ticker(VOLUME_WEIGHTED_AVERAGE_LAST_24)
+#
+#   Vendita (limit):
+#   sellPrice = buyPrice * (1.0 + sellPerc)
+#
+#   emetto ordine di vendita subito dopo avercomprato
+#
+###################################
+
+ct.trading.assetPair=XXBTZUSD
+
+# importo degli ordini in €
+ct.trading.notional=20
+
+# % da applicare all'importo per decidere i prezzi buy/sell
+ct.trading.delta.perc.buy=0.11
+ct.trading.delta.perc.sell=0.09
+
+# tasse sulla transazione
+ct.trading.fees.perc.buy=0.16
+ct.trading.fees.perc.sell=0.26
+
+
+
+

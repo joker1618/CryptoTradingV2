@@ -1,4 +1,4 @@
-package com.fede.ct.v2.common.config;
+package com.fede.ct.v2.common.config.impl;
 
 import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.logger.LogService;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * Created by f.barbano on 12/10/2017.
  */
-public class AbstractConfig {
+abstract class AbstractConfig {
 
 	private Map<String, Prop> configMap;
 
