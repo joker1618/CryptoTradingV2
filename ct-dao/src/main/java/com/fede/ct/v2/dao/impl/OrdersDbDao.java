@@ -1,143 +1,121 @@
 package com.fede.ct.v2.dao.impl;
 
+import com.fede.ct.v2.common.context.CryptoContext;
 import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.model._private.OrderInfo;
-import com.fede.ct.v2.common.model.types.OrderFlag;
-import com.fede.ct.v2.common.model.types.OrderMisc;
-import com.fede.ct.v2.common.model.types.OrderStatus;
+import com.fede.ct.v2.common.model._private.OrderInfo.OrderDescr;
+import com.fede.ct.v2.common.model.types.*;
+import com.fede.ct.v2.common.util.StrUtil;
 import com.fede.ct.v2.common.util.StreamUtil;
 import com.fede.ct.v2.dao.IOrdersDao;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Created by f.barbano on 06/11/2017.
  */
-public class OrdersDbDao {/*extends AbstractDbDao implements IOrdersDao {
+public class OrdersDbDao extends AbstractDbDao2 implements IOrdersDao {
 
 	private static final String REPLACE_ORDERS_PREFIX = "REPLACE INTO ORDERS (ORDER_TX_ID,USER_ID,REF_ID,USER_REF,STATUS,REASON,OPENTM,CLOSETM,STARTTM,EXPIRETM,VOL,VOL_EXEC,COST,FEE,AVG_PRICE,STOP_PRICE,LIMIT_PRICE,MISC,OFLAGS,TRADES_ID,DESCR_PAIR_NAME,DESCR_ORDER_ACTION,DESCR_ORDER_TYPE,DESCR_PRICE,DESCR_PRICE2,DESCR_LEVERAGE,DESCR_ORDER_DESCR,DESCR_CLOSE_DESCR) VALUES ";
 	private static final String SELECT_OPEN_ORDERS = "SELECT ORDER_TX_ID FROM ORDERS WHERE STATUS = 'open' AND USER_ID = ?";
 	private static final String SELECT_ORDERS_STATUS = "SELECT ORDER_TX_ID, STATUS FROM ORDERS WHERE ORDER_TX_ID IN ('%s') AND USER_ID = %d";
 
-	public OrdersDbDao(Connection connection) {
-		super(connection);
+	public OrdersDbDao(CryptoContext ctx) {
+		super(ctx);
 	}
+
 
 	@Override
-	public void updateOrders(int userId, List<OrderInfo> orders) {
-		String strValues = StreamUtil.join(orders, ",", o -> orderInfoToValueString(o, userId));
-		String query = REPLACE_ORDERS_PREFIX + strValues;
-		super.performUpdate(query);
+	public void updateOrders(List<OrderInfo> orders) {
+		List<Query> queries = super.createJdbcQueries(REPLACE_ORDERS_PREFIX, orders.size(), 28, orders, getOrderInfoParse());
+		super.performTransaction(queries);
 	}
 
-	@Override
-	public List<String> getOpenOrders(int userId) {
-		try(PreparedStatement ps = createPreparedStatement(SELECT_OPEN_ORDERS, userId);
-			ResultSet rs = ps.executeQuery()) {
-
-			List<String> txIdList = new ArrayList<>();
-			if(rs != null) {
-				while(rs.next()) {
-					txIdList.add(rs.getString("ORDER_TX_ID"));
-				}
-			}
-
-			return txIdList;
-			
-		} catch (SQLException e) {
-			throw new TechnicalException(e, "Error performing select [query=%s, userId=%d]", SELECT_OPEN_ORDERS, userId);
-		}
+	private List<Function<OrderInfo, Object>> getOrderInfoParse() {
+		List<Function<OrderInfo, Object>> functions = new ArrayList<>();
+		functions.add(OrderInfo::getOrderTxID);
+		functions.add(oi -> getUserCtx().getUserId());
+		functions.add(OrderInfo::getRefId);
+		functions.add(OrderInfo::getUserRef);
+		functions.add(oi -> oi.getStatus().label());
+		functions.add(OrderInfo::getReason);
+		functions.add(OrderInfo::getOpenTm);
+		functions.add(OrderInfo::getCloseTm);
+		functions.add(OrderInfo::getStartTm);
+		functions.add(OrderInfo::getExpireTm);
+		functions.add(OrderInfo::getVol);
+		functions.add(OrderInfo::getVolExec);
+		functions.add(OrderInfo::getCost);
+		functions.add(OrderInfo::getFee);
+		functions.add(OrderInfo::getAvgPrice);
+		functions.add(OrderInfo::getStopPrice);
+		functions.add(OrderInfo::getLimitPrice);
+		functions.add(oi -> StreamUtil.join(oi.getMisc(), ",", OrderMisc::label));
+		functions.add(oi -> StreamUtil.join(oi.getOflags(), ",", OrderFlag::label));
+		functions.add(oi -> StreamUtil.join(oi.getTradesId(), ","));
+		functions.add(oi -> oi.getDescr().getPairName());
+		functions.add(oi -> oi.getDescr().getOrderAction().label());
+		functions.add(oi -> oi.getDescr().getOrderType().label());
+		functions.add(oi -> oi.getDescr().getPrimaryPrice());
+		functions.add(oi -> oi.getDescr().getSecondaryPrice());
+		functions.add(oi -> oi.getDescr().getLeverage());
+		functions.add(oi -> oi.getDescr().getOrderDescription());
+		functions.add(oi -> oi.getDescr().getCloseDescription());
+		return functions;
 	}
 
-	@Override
-	public List<OrderInfo> getOrdersStatus(int userId, List<String> orderTxIds) {
-		String query = String.format(SELECT_ORDERS_STATUS, StreamUtil.join(orderTxIds, "','"), userId);
 
-		try(PreparedStatement ps = createPreparedStatement(query);
-			ResultSet rs = ps.executeQuery()) {
+	private OrderInfo parseOrderInfo(InquiryResult ir) {
+		OrderInfo oi = new OrderInfo();
+		oi.setOrderTxID(ir.getString("ORDER_TX_ID"));
+		oi.setRefId(ir.getString("REF_ID"));
+		oi.setUserRef(ir.getString("USER_REF"));
+		oi.setStatus(OrderStatus.getByLabel(ir.getString("STATUS")));
+		oi.setReason(ir.getString("REASON"));
+		oi.setOpenTm(ir.getLong("OPENTM"));
+		oi.setCloseTm(ir.getLong("CLOSETM"));
+		oi.setStartTm(ir.getLong("STARTTM"));
+		oi.setExpireTm(ir.getLong("EXPIRETM"));
+		oi.setVol(ir.getBigDecimal("VOL"));
+		oi.setVolExec(ir.getBigDecimal("VOL_EXEC"));
+		oi.setCost(ir.getBigDecimal("COST"));
+		oi.setFee(ir.getBigDecimal("FEE"));
+		oi.setAvgPrice(ir.getBigDecimal("AVG_PRICE"));
+		oi.setStopPrice(ir.getBigDecimal("STOP_PRICE"));
+		oi.setLimitPrice(ir.getBigDecimal("LIMIT_PRICE"));
 
-			List<OrderInfo> toRet = new ArrayList<>();
-			if(rs != null && rs.next()) {
-				String txId = rs.getString("ORDER_TX_ID");
-				String sqlRes = rs.getString("STATUS");
-				OrderInfo oi = new OrderInfo();
-				oi.setOrderTxID(txId);
-				oi.setStatus(OrderStatus.getByLabel(sqlRes));
-				toRet.add(oi);
-			}
+		List<String> strMisc = StrUtil.splitFieldsList(ir.getString("MISC"), ",");
+		oi.setMisc(StreamUtil.map(strMisc, OrderMisc::getByLabel));
 
-			return toRet;
+		List<String> strOFlags = StrUtil.splitFieldsList(ir.getString("OFLAGS"), ",");
+		oi.setOflags(StreamUtil.map(strOFlags, OrderFlag::getByLabel));
 
-		} catch (SQLException e) {
-			throw new TechnicalException(e, "Error performing select [query=%s]", query);
-		}
+		List<String> tradeIds = StrUtil.splitFieldsList(ir.getString("TRADES_ID"), ",");
+		oi.setTradesId(tradeIds);
+
+		OrderDescr od = new OrderDescr();
+		od.setPairName(ir.getString("DESCR_PAIR_NAME"));
+		od.setOrderAction(OrderAction.getByLabel(ir.getString("DESCR_ORDER_ACTION")));
+		od.setOrderType(OrderType.getByLabel(ir.getString("DESCR_ORDER_TYPE")));
+		od.setPrimaryPrice(ir.getBigDecimal("DESCR_PRICE"));
+		od.setSecondaryPrice(ir.getBigDecimal("DESCR_PRICE2"));
+		od.setLeverage(ir.getInteger("DESCR_LEVERAGE"));
+		od.setOrderDescription(ir.getString("DESCR_ORDER_DESCR"));
+		od.setCloseDescription(ir.getString("DESCR_CLOSE_DESCR"));
+
+		oi.setDescr(od);
+
+		return oi;
 	}
 
-	private String orderInfoToValueString(OrderInfo order, int userId) {
-		return String.format("(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-			toJdbcString(order.getOrderTxID()),
-			toJdbcString(userId),
-			toJdbcString(order.getRefId()),
-			toJdbcString(order.getUserRef()),
-			toJdbcString(order.getStatus() == null ? null : order.getStatus().label()),
-			toJdbcString(order.getReason()),
-			toJdbcString(order.getOpenTm()),
-			toJdbcString(order.getCloseTm()),
-			toJdbcString(order.getStartTm()),
-			toJdbcString(order.getExpireTm()),
-			toJdbcString(order.getVol()),
-			toJdbcString(order.getVolExec()),
-			toJdbcString(order.getCost()),
-			toJdbcString(order.getFee()),
-			toJdbcString(order.getAvgPrice()),
-			toJdbcString(order.getStopPrice()),
-			toJdbcString(order.getLimitPrice()),
-			toJdbcString(StreamUtil.join(order.getMisc(), ",", OrderMisc::label)),
-			toJdbcString(StreamUtil.join(order.getOflags(), ",", OrderFlag::label)),
-			toJdbcString(StreamUtil.join(order.getTradesId(), ",")),
-			toJdbcString(order.getDescr().getPairName()),
-			toJdbcString(order.getDescr().getOrderAction().label()),
-			toJdbcString(order.getDescr().getOrderType().label()),
-			toJdbcString(order.getDescr().getPrimaryPrice()),
-			toJdbcString(order.getDescr().getSecondaryPrice()),
-			toJdbcString(order.getDescr().getLeverage()),
-			toJdbcString(order.getDescr().getOrderDescription()),
-			toJdbcString(order.getDescr().getCloseDescription())
-		);
-	}
-	
-//	private OrderInfo parseOrderInfo(ResultSet rs, String querySelect) throws SQLException {
-//		String sel = StringUtils.substringBetween(querySelect, "SELECT", "FROM");
-//
-//		OrderInfo oi = new OrderInfo();
-//		if(sel.contains("ORDER_TX_ID"))	oi.setOrderTxID(rs.getString("ORDER_TX_ID"));
-//		if(sel.contains("REF_ID"))		oi.setRefId(rs.getString("REF_ID"));
-//		if(sel.contains("USER_REF"))	oi.setUserRef(rs.getString("USER_REF"));
-//		if(sel.contains("STATUS"))		oi.setStatus(OrderStatus.getByLabel(rs.getString("STATUS")));
-//		if(sel.contains("REASON"))		oi.setReason(rs.getString("REASON"));
-//		if(sel.contains("OPENTM"))		oi.setOpenTm(rs.getLong("OPENTM"));
-//		if(sel.contains("CLOSETM"))		oi.setOpenTm(rs.getLong("CLOSETM"));
-//		if(sel.contains("STARTTM"))		oi.setOpenTm(rs.getLong("STARTTM"));
-//		if(sel.contains("EXPIRETM"))	oi.setOpenTm(rs.getLong("EXPIRETM"));
-//		if(sel.contains("VOL"))			oi.setVol(rs.getBigDecimal("VOL"));
-//		if(sel.contains("VOL_EXEC"))	oi.setVolExec(rs.getBigDecimal("VOL_EXEC"));
-//		if(sel.contains("COST"))		oi.setCost(rs.getBigDecimal("COST"));
-//		if(sel.contains("FEE"))			oi.setFee(rs.getBigDecimal("FEE"));
-//		if(sel.contains("AVG_PRICE"))	oi.setAvgPrice(rs.getBigDecimal("AVG_PRICE"));
-//		if(sel.contains("STOP_PRICE"))	oi.setStopPrice(rs.getBigDecimal("STOP_PRICE"));
-//		if(sel.contains("LIMIT_PRICE"))	oi.setLimitPrice(rs.getBigDecimal("LIMIT_PRICE"));
-//		if(sel.contains("MISC"))		oi.setMisc(StreamUtil.map(StrUtil.splitFieldsList(rs.getString("MISC"), ","), OrderMisc::getByLabel));
-//		if(sel.contains("OFLAGS"))		oi.setOflags(StreamUtil.map(StrUtil.splitFieldsList(rs.getString("OFLAGS"), ","), OrderFlag::getByLabel));
-//		if(sel.contains("TRADES_ID"))	oi.setTradesId(StrUtil.splitFieldsList(rs.getString("TRADES_ID"), ","));
-//
-//		OrderDescr od = new OrderDescr();
-//		dff
-//
-//	}
-*/
+
+
 }

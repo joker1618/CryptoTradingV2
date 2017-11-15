@@ -1,7 +1,7 @@
 package com.fede.ct.v2.service.impl;
 
-import com.fede.ct.v2.common.config._public.ConfigPublic;
-import com.fede.ct.v2.common.config._public.IConfigPublic;
+import com.fede.ct.v2.common.config.IConfigPublic;
+import com.fede.ct.v2.common.config.impl.ConfigService;
 import com.fede.ct.v2.common.context.CryptoContext;
 import com.fede.ct.v2.common.logger.LogService;
 import com.fede.ct.v2.common.logger.SimpleLog;
@@ -36,14 +36,14 @@ class ServicePublic extends AbstractService implements ICryptoService {
 
 	private final IKrakenPublic krakenPublic;
 	private final IModelPublic modelPublic;
-	private final IConfigPublic configPublic = ConfigPublic.getUniqueInstance();
+	private final IConfigPublic configPublic = ConfigService.getConfigPublic();
 
 	private List<String> assetPairsNames = Collections.synchronizedList(new ArrayList<>());
 
 	ServicePublic(CryptoContext ctx) {
 		super(ctx);
 		krakenPublic = KrakenFactory.getPublicCaller();
-		modelPublic = ModelFactory.getModelPublic(ctx.getDbConn());
+		modelPublic = ModelFactory.createModelPublic(ctx);
 	}
 
 	@Override

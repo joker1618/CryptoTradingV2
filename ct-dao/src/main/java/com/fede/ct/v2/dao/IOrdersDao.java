@@ -9,9 +9,9 @@ import java.util.List;
  */
 public interface IOrdersDao {
 
-	void updateOrders(int userId, List<OrderInfo> orders);
+	void updateOrders(List<OrderInfo> orders);
 
-	List<String> getOpenOrders(int userId);
-	List<OrderInfo> getOrdersStatus(int userId, List<String> orderTxId);
+//	List<String> getOpenOrders(int userId);
+//	List<OrderInfo> getOrdersStatus(int userId, List<String> orderTxId);
 
 }

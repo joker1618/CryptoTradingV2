@@ -1,5 +1,6 @@
 package com.fede.ct.v2.dao.impl;
 
+import com.fede.ct.v2.common.context.CryptoContext;
 import com.fede.ct.v2.common.context.UserCtx;
 import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.logger.LogService;
@@ -26,8 +27,8 @@ public class UsersDbDao extends AbstractDbDao2 implements IUsersDao {
 	private static final String INSERT_NEW_ENTRY = "INSERT INTO CT_USERS (USER_ID, USER_NAME, API_KEY, API_SECRET) VALUES (?,?,?,?)";
 
 
-	public UsersDbDao(Connection connection) {
-		super(connection);
+	public UsersDbDao(CryptoContext ctx) {
+		super(ctx);
 	}
 
 	@Override
@@ -59,6 +60,7 @@ public class UsersDbDao extends AbstractDbDao2 implements IUsersDao {
 
 		UserCtx userCtx = new UserCtx();
 		userCtx.setUserId(nextId);
+		userCtx.setUserName(userName);
 		userCtx.setApiKey(apiKey);
 		userCtx.setApiSecret(apiSecret);
 		return userCtx;

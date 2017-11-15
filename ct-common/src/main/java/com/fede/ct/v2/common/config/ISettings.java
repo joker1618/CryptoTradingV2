@@ -6,9 +6,7 @@ import java.util.logging.Level;
 /**
  * Created by f.barbano on 11/11/2017.
  */
-public interface IConfigCommon {
-
-	void loadConfigFile(String filePath);
+public interface ISettings {
 
 	// DB config
 	String getDbUrl();

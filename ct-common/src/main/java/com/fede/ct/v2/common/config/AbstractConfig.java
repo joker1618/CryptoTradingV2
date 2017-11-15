@@ -1,11 +1,13 @@
 package com.fede.ct.v2.common.config;
 
+import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.logger.LogService;
 import com.fede.ct.v2.common.util.StrUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -24,38 +26,53 @@ public class AbstractConfig {
 	private static final String KEY_IMPORT = "@import";
 
 	protected AbstractConfig() {
-		this.configMap = Collections.synchronizedMap(new HashMap<>());
+		this(null);
 	}
 
-	protected void loadConfigFile(String configFilePath) throws IOException {
-		Path folder = Paths.get(configFilePath).toAbsolutePath().getParent();
+	protected AbstractConfig(String configFilePath) {
+		this.configMap = Collections.synchronizedMap(new HashMap<>());
+		if(StringUtils.isNotBlank(configFilePath)) {
+			loadConfigFile(configFilePath);
+		}
+	}
 
-		InputStream is = new FileInputStream(configFilePath);
+	protected void loadConfigFile(String configFilePath) {
+		Path path = Paths.get(configFilePath);
+		if(StringUtils.isBlank(configFilePath) && !Files.exists(path))	return;
 
-		// read properties from file
-		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-		String line;
-		List<Path> imports = new ArrayList<>();
-		while ((line = reader.readLine()) != null) {
-			if(StringUtils.isNotBlank(line) && !line.trim().startsWith(COMMENT_START)) {
-				String trimmed = line.trim();
-				if(trimmed.startsWith(KEY_IMPORT+" ")) {
-					String fn = trimmed.replaceFirst(KEY_IMPORT, "").trim();
-					imports.add(folder.resolve(fn));
-				} else if(trimmed.contains(KEY_SEP)) {
-					int idxSep = trimmed.indexOf(KEY_SEP);
-					String key = trimmed.substring(0, idxSep).trim();
-					String value = trimmed.substring(idxSep+1).trim();
-					configMap.put(key, new Prop(key, value, value));
+		try {
+			Path folder = path.toAbsolutePath().getParent();
+
+			InputStream is = new FileInputStream(configFilePath);
+
+			// read properties from file
+			BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+			String line;
+			List<Path> imports = new ArrayList<>();
+			while ((line = reader.readLine()) != null) {
+				if (StringUtils.isNotBlank(line) && !line.trim().startsWith(COMMENT_START)) {
+					String trimmed = line.trim();
+					if (trimmed.startsWith(KEY_IMPORT + " ")) {
+						String fn = trimmed.replaceFirst(KEY_IMPORT, "").trim();
+						imports.add(folder.resolve(fn));
+					} else if (trimmed.contains(KEY_SEP)) {
+						int idxSep = trimmed.indexOf(KEY_SEP);
+						String key = trimmed.substring(0, idxSep).trim();
+						String value = trimmed.substring(idxSep + 1).trim();
+						configMap.put(key, new Prop(key, value, value));
+					}
 				}
 			}
+
+			for (Path p : imports) loadConfigFile(p.toString());
+
+			// replace variables
+			// #var#  and  ${var}  allowed
+			evaluateVariables();
+
+		} catch (IOException ex) {
+			throw new TechnicalException("Unable to load config from file %s", configFilePath);
 		}
-
-		for(Path p : imports)	loadConfigFile(p.toString());
-
-		// replace variables
-		// #var#  and  ${var}  allowed
-		evaluateVariables();
 	}
 
 	private void evaluateVariables() {

@@ -23,4 +23,11 @@ public class Converter {
 		return BigDecimal.valueOf(num);
 	}
 
+	public static Integer stringToInteger(String str) {
+		try {
+			return Integer.parseInt(str);
+		} catch(NumberFormatException ex) {
+			return null;
+		}
+	}
 }

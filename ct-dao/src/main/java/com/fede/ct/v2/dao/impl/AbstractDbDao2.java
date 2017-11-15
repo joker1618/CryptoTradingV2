@@ -1,5 +1,7 @@
 package com.fede.ct.v2.dao.impl;
 
+import com.fede.ct.v2.common.context.CryptoContext;
+import com.fede.ct.v2.common.context.UserCtx;
 import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.logger.LogService;
 import com.fede.ct.v2.common.logger.SimpleLog;
@@ -23,11 +25,11 @@ abstract class AbstractDbDao2 {
 
 	private static final int MAX_MARKS_NUMBER = 200; // JDBC max is 232
 
-	private final Connection connection;
+	private final CryptoContext ctx;
 	private final Object monitorWrite;
 
-	protected AbstractDbDao2(Connection connection) {
-		this.connection = connection;
+	protected AbstractDbDao2(CryptoContext ctx) {
+		this.ctx = ctx;
 		this.monitorWrite = new Object();
 	}
 
@@ -75,16 +77,20 @@ abstract class AbstractDbDao2 {
 			synchronized (monitorWrite) {
 				long startTime = System.currentTimeMillis();
 				logger.debug("Start batch %s", queries);
-				connection.setAutoCommit(false);
+				ctx.getDbConn().setAutoCommit(false);
 				for (Query query : queries) doUpdate(query);
-				connection.commit();
-				connection.setAutoCommit(true);
+				ctx.getDbConn().commit();
+				ctx.getDbConn().setAutoCommit(true);
 				long endTime = System.currentTimeMillis();
 				logger.debug("End batch, elapsed=%s\t%s", OutFormat.toStringElapsed(startTime, endTime, true), queries);
 			}
 		} catch (SQLException e) {
 			throw new TechnicalException(e, "Error performing transaction %s", queries);
 		}
+	}
+
+	protected UserCtx getUserCtx() {
+		return ctx == null ? null : ctx.getUserCtx();
 	}
 
 	/**
@@ -139,7 +145,7 @@ abstract class AbstractDbDao2 {
 	}
 
 	private PreparedStatement createPreparedStatement(Query query) throws SQLException {
-		PreparedStatement ps = connection.prepareStatement(query.query);
+		PreparedStatement ps = ctx.getDbConn().prepareStatement(query.query);
 		int idx = 1;
 		for (Object param : query.getParamArray()) {
 			if (param instanceof Long) ps.setLong(idx, (Long) param);

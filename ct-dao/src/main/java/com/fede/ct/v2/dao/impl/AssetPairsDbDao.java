@@ -1,5 +1,6 @@
 package com.fede.ct.v2.dao.impl;
 
+import com.fede.ct.v2.common.context.CryptoContext;
 import com.fede.ct.v2.common.model._public.AssetPair;
 import com.fede.ct.v2.common.model._public.AssetPair.FeeSchedule;
 import com.fede.ct.v2.common.model._public.AssetPair.Leverage;
@@ -35,8 +36,8 @@ public class AssetPairsDbDao extends AbstractDbDao2 implements IAssetPairsDao {
 	private static final String SELECT_TRADABLE_NAMES = "SELECT PAIR_NAME FROM ASSET_PAIRS WHERE EXPIRE_TIME = 0 AND PAIR_NAME NOT LIKE '%.d' ORDER BY PAIR_NAME";
 
 
-	public AssetPairsDbDao(Connection connection) {
-		super(connection);
+	public AssetPairsDbDao(CryptoContext ctx) {
+		super(ctx);
 	}
 
 	@Override

@@ -5,8 +5,8 @@ package com.fede.ct.v2.dao;
  */
 public interface IPropertiesDao {
 
-	boolean isDownloadOrdersEnabled(int userId);
-	void setDownloadOrdersEnabled(int userId, boolean enabled);
+	boolean isDownloadOrdersEnabled();
+	void setDownloadOrdersEnabled(boolean enabled);
 
 
 }

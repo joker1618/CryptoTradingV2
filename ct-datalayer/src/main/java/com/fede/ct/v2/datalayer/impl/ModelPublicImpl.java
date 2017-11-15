@@ -21,8 +21,7 @@ class ModelPublicImpl implements IModelPublic {
 	private IAssetPairsDao assetPairsDao;
 	private ITickersDao tickersDao;
 
-
-
+	
 	@Override
 	public List<Asset> getAssets() {
 		return assetsDao.selectAssets();

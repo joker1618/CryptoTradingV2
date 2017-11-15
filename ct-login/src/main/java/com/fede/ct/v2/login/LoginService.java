@@ -1,14 +1,13 @@
 package com.fede.ct.v2.login;
 
-import com.fede.ct.v2.common.config._public.ConfigPublic;
-import com.fede.ct.v2.common.config._public.IConfigPublic;
+import com.fede.ct.v2.common.config.ISettings;
+import com.fede.ct.v2.common.config.IConfigPublic;
+import com.fede.ct.v2.common.config.impl.ConfigService;
 import com.fede.ct.v2.common.context.CryptoContext;
 import com.fede.ct.v2.common.context.RunType;
 import com.fede.ct.v2.common.context.UserCtx;
 import com.fede.ct.v2.common.exception.TechnicalException;
-import com.fede.ct.v2.dao.IAssetsDao;
 import com.fede.ct.v2.dao.IUsersDao;
-import com.fede.ct.v2.dao.impl.AssetsDbDao;
 import com.fede.ct.v2.dao.impl.UsersDbDao;
 
 import java.sql.Connection;
@@ -19,13 +18,13 @@ import java.sql.DriverManager;
  */
 public class LoginService {
 
-	private static final IConfigPublic configPublic = ConfigPublic.getUniqueInstance();
+	private static final ISettings settings = ConfigService.getSettings();
 
 	public static CryptoContext registerNewUser(String userName, String apiKey, String apiSecret) {
 		Connection dbConn = createConnection();
-		IUsersDao usersDao = new UsersDbDao(dbConn);
-		UserCtx userCtx = usersDao.createNewUserId(userName, apiKey, apiSecret);
 		CryptoContext ctx = new CryptoContext(RunType.REGISTER_USER, dbConn);
+		IUsersDao usersDao = new UsersDbDao(ctx);
+		UserCtx userCtx = usersDao.createNewUserId(userName, apiKey, apiSecret);
 		ctx.setUserCtx(userCtx);
 		return ctx;
 	}
@@ -40,8 +39,8 @@ public class LoginService {
 
 		if(runType == RunType.PRIVATE || runType == RunType.STRATEGY) {
 			Connection dbConn = createConnection();
-			CryptoContext ctx = new CryptoContext(runType, createConnection());
-			IUsersDao usersDao = new UsersDbDao(dbConn);
+			CryptoContext ctx = new CryptoContext(runType, dbConn);
+			IUsersDao usersDao = new UsersDbDao(ctx);
 			UserCtx userCtx = usersDao.getByUserId(userId);
 			if(userCtx == null) {
 				throw new TechnicalException("User ID %d not registered", userId);
@@ -56,7 +55,7 @@ public class LoginService {
 	private static Connection createConnection() {
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
-			return DriverManager.getConnection(configPublic.getDbUrl(), configPublic.getDbUser(), configPublic.getDbPwd());
+			return DriverManager.getConnection(settings.getDbUrl(), settings.getDbUser(), settings.getDbPwd());
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

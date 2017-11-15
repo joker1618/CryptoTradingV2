@@ -24,4 +24,11 @@ public class ConfigKeys {
 		public static final String CALL_RATE_ASSET_PAIRS = "ct.public.kraken.call.rate.assetPairs";
 		public static final String CALL_RATE_TICKERS = "ct.public.kraken.call.rate.tickers";
 	}
+
+	/* Private keys */
+	public static class PrivateKeys {
+		public static final String CALL_RATE_ORDERS = "ct.private.kraken.call.rate.orders";
+		public static final String ORDERS_DOWNLOAD_AUTOSTOP_OPEN = "ct.private.orders.download.autostop.open.after";
+		public static final String ORDERS_DOWNLOAD_AUTOSTOP_CLOSED = "ct.private.orders.download.autostop.closed.after";
+	}
 }

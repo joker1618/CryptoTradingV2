@@ -1,5 +1,7 @@
-package com.fede.ct.v2.common.config;
+package com.fede.ct.v2.common.config.impl;
 
+import com.fede.ct.v2.common.config.AbstractConfig;
+import com.fede.ct.v2.common.config.ISettings;
 import com.fede.ct.v2.common.exception.TechnicalException;
 import org.apache.commons.lang3.StringUtils;
 
@@ -14,20 +16,12 @@ import static com.fede.ct.v2.common.config.ConfigKeys.*;
 /**
  * Created by f.barbano on 11/11/2017.
  */
-public abstract class ConfigCommon extends AbstractConfig implements IConfigCommon {
+class SettingsImpl extends AbstractConfig implements ISettings {
 
-	protected ConfigCommon() {
-		super();
+	SettingsImpl(String filePath) {
+		super(filePath);
 	}
 
-	@Override
-	public void loadConfigFile(String filePath) {
-		try {
-			super.loadConfigFile(filePath);
-		} catch (IOException e) {
-			throw new TechnicalException(e, "Unable to load config from file %s", filePath);
-		}
-	}
 
 	@Override
 	public String getDbUrl() {

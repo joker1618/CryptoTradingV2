@@ -1,5 +1,6 @@
 package com.fede.ct.v2.dao.impl;
 
+import com.fede.ct.v2.common.context.CryptoContext;
 import com.fede.ct.v2.common.model._public.Asset;
 import com.fede.ct.v2.common.util.StreamUtil;
 import com.fede.ct.v2.dao.IAssetsDao;
@@ -19,8 +20,8 @@ public class AssetsDbDao extends AbstractDbDao2 implements IAssetsDao {
 	private static final String INSERT_NEW_PREFIX = "INSERT INTO ASSETS (ASSET_NAME, A_CLASS, ALT_NAME, DECIMALS, DISPLAY_DECIMALS, START_TIME, EXPIRE_TIME) VALUES ";
 
 
-	public AssetsDbDao(Connection connection) {
-		super(connection);
+	public AssetsDbDao(CryptoContext ctx) {
+		super(ctx);
 	}
 
 	@Override

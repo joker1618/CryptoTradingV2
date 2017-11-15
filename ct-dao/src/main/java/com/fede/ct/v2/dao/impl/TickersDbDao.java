@@ -1,5 +1,6 @@
 package com.fede.ct.v2.dao.impl;
 
+import com.fede.ct.v2.common.context.CryptoContext;
 import com.fede.ct.v2.common.model._public.Ticker;
 import com.fede.ct.v2.common.model._public.Ticker.TickerPrice;
 import com.fede.ct.v2.common.model._public.Ticker.TickerVolume;
@@ -24,8 +25,8 @@ public class TickersDbDao extends AbstractDbDao2 implements ITickersDao {
 
 	private static final String SELECT_ASK_PRICE_AVERAGE_LAST24 = "SELECT PAIR_NAME, ASK_PRICE, VOLUME_WEIGHTED_AVERAGE_LAST_24 FROM TICKERS WHERE PAIR_NAME = ? AND CALL_TIME = (SELECT MAX(CALL_TIME) FROM TICKERS)";
 
-	public TickersDbDao(Connection connection) {
-		super(connection);
+	public TickersDbDao(CryptoContext ctx) {
+		super(ctx);
 	}
 
 	@Override

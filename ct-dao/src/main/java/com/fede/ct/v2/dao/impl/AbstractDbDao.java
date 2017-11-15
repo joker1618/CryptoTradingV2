@@ -17,6 +17,7 @@ import java.util.Arrays;
  */
 // review to delete class
 abstract class AbstractDbDao {
+/*
 
 	private static final SimpleLog logger = LogService.getLogger(AbstractDbDao.class);
 
@@ -82,4 +83,6 @@ abstract class AbstractDbDao {
 		if(bigDecimal == null)	return null;
 		return OutFormat.getEnglishFormat().format(bigDecimal);
 	}
+
+*/
 }
