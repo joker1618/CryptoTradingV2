@@ -1,5 +1,6 @@
 package com.fede.ct.v2.common.util;
 
+import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -27,7 +28,9 @@ public class OutFormat {
 		return DateTimeFormatter.ofPattern(pattern).format(ldt);
 	}
 
-
+	public static String toStringNum(BigDecimal num) {
+		return getEnglishFormat().format(num);
+	}
 
 
 	public static String toStringElapsed(long start, long end, boolean showMilli) {

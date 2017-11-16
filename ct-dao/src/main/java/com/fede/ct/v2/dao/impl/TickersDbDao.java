@@ -23,7 +23,7 @@ public class TickersDbDao extends AbstractDbDao implements ITickersDao {
 												   "VOLUME_WEIGHTED_AVERAGE_TODAY, VOLUME_WEIGHTED_AVERAGE_LAST_24, NUMBER_TRADES_TODAY, NUMBER_TRADES_LAST_24, LOW_TODAY, " +
 												   "LOW_LAST_24, HIGH_TODAY, HIGH_LAST_24, OPENING_PRICE, GRAFANA_TIME, VALID) VALUES ";
 
-//	private static final String SELECT_ASK_PRICE_AVERAGE_LAST24 = "SELECT PAIR_NAME, ASK_PRICE, VOLUME_WEIGHTED_AVERAGE_LAST_24 FROM TICKERS WHERE PAIR_NAME = ? AND CALL_TIME = (SELECT MAX(CALL_TIME) FROM TICKERS)";
+	private static final String SELECT_ASK_PRICE_AVERAGE_LAST24 = "SELECT PAIR_NAME, ASK_PRICE, VOLUME_WEIGHTED_AVERAGE_LAST_24 FROM TICKERS WHERE PAIR_NAME = ? AND VALID = 1";
 
 	public TickersDbDao(CryptoContext ctx) {
 		super(ctx);
@@ -36,13 +36,13 @@ public class TickersDbDao extends AbstractDbDao implements ITickersDao {
 		queries.add(0, updateQuery);
 		super.performTransaction(queries);
 	}
-//
-//	@Override
-//	public Ticker selectAskPriceAndAverageLast24(String pairName) {
-//		Query query = new Query(SELECT_ASK_PRICE_AVERAGE_LAST24, pairName);
-//		List<InquiryResult> results = super.performInquiry(query);
-//		return results.isEmpty() ? null : parseTicker(results.get(0));
-//	}
+
+	@Override
+	public Ticker selectAskPriceAndAvgLast24(String pairName) {
+		Query query = new Query(SELECT_ASK_PRICE_AVERAGE_LAST24, pairName);
+		List<InquiryResult> results = super.performInquiry(query);
+		return results.isEmpty() ? null : parseTicker(results.get(0));
+	}
 
 	private List<Function<Ticker, Object>> getTickerFunctions(Long callTime) {
 		List<Function<Ticker, Object>> functions = new ArrayList<>();

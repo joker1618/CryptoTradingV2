@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS ORDERS (
     CLOSETM         BIGINT, 		-- only for closed orders
     STARTTM         BIGINT,
     EXPIRETM        BIGINT,
-    VOL             DECIMAL(30,11),
+    VOL             DECIMAL(21,11),
     VOL_EXEC        DECIMAL(21,11),
     COST            DECIMAL(21,11),
     FEE             DECIMAL(21,11),

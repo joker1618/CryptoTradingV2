@@ -31,4 +31,12 @@ public class Func {
 		int end = to > source.size() ? source.size() : to;
 		return source.subList(from, end);
 	}
+
+	public static void sleep(long millis) {
+		try {
+			Thread.sleep(millis);
+		} catch (InterruptedException e) {
+			// do nothing
+		}
+	}
 }

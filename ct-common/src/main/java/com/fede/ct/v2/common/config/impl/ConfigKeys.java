@@ -33,7 +33,7 @@ public class ConfigKeys {
 	}
 
 	/* Strategy keys */
-	public static class StrategyKeys {
+	public static class TradingKeys {
 		public static final String ASSET_PAIR = "ct.trading.assetPair";
 		public static final String NOTIONAL = "ct.trading.notional";
 		public static final String DELTA_PERC_BUY = "ct.trading.delta.perc.buy";

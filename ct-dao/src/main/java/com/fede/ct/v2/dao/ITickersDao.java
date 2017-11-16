@@ -11,7 +11,7 @@ public interface ITickersDao {
 
 	void insertTickers(List<Ticker> tickers, long callTime);
 
-//	Ticker selectAskPriceAndAverageLast24(String pairName);
+	Ticker selectAskPriceAndAvgLast24(String pairName);
 
 
 }

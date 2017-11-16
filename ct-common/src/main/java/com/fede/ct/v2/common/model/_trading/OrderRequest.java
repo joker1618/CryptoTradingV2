@@ -11,14 +11,14 @@ import java.math.BigDecimal;
  */
 public class OrderRequest {
 
-	public static AddOrderIn createBuyLimitOrderIn(String pairName, BigDecimal price, double volume) {
-		AddOrderIn request = new AddOrderIn(pairName, OrderAction.BUY, OrderType.LIMIT, volume);
+	public static AddOrderIn createBuyLimitOrderIn(String pairName, BigDecimal price, BigDecimal volume) {
+		AddOrderIn request = new AddOrderIn(pairName, OrderAction.BUY, OrderType.LIMIT, volume.doubleValue());
 		request.setPrice(price);
 		return request;
 	}
 
-	public static AddOrderIn createSellLimitOrderIn(String pairName, BigDecimal price, double volume) {
-		AddOrderIn request = new AddOrderIn(pairName, OrderAction.SELL, OrderType.LIMIT, volume);
+	public static AddOrderIn createSellLimitOrderIn(String pairName, BigDecimal price, BigDecimal volume) {
+		AddOrderIn request = new AddOrderIn(pairName, OrderAction.SELL, OrderType.LIMIT, volume.doubleValue());
 		request.setPrice(price);
 		return request;
 	}

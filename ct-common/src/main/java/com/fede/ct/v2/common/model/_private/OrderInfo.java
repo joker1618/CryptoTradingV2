@@ -63,6 +63,10 @@ public class OrderInfo {
 	//	trades = array of trade ids related to order (if trades info requested and data available)
 	private List<String> tradesId;
 
+	public boolean isOrderActive() {
+		return status != null && (status == OrderStatus.PENDING || status == OrderStatus.OPEN);
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;

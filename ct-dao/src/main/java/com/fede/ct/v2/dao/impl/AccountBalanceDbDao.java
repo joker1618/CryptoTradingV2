@@ -2,6 +2,7 @@ package com.fede.ct.v2.dao.impl;
 
 import com.fede.ct.v2.common.context.CryptoContext;
 import com.fede.ct.v2.common.model._private.AccountBalance;
+import com.fede.ct.v2.common.util.StreamUtil;
 import com.fede.ct.v2.dao.IAccountBalanceDao;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ public class AccountBalanceDbDao extends AbstractDbDao implements IAccountBalanc
 
 	private static final String INVALITE_UPDATE = "UPDATE ACCOUNT_BALANCE SET VALID = 0 WHERE VALID = 1";
 	private static final String INSERT_NEW_VALUES = "INSERT INTO ACCOUNT_BALANCE (USER_ID, CALL_TIME, ASSET_NAME, BALANCE, VALID) VALUES ";
+	private static final String SELECT_VALIDS = "SELECT CALL_TIME, ASSET_NAME, BALANCE FROM ACCOUNT_BALANCE WHERE USER_ID = ? AND VALID = 1";
 
 	public AccountBalanceDbDao(CryptoContext ctx) {
 		super(ctx);
@@ -26,6 +28,13 @@ public class AccountBalanceDbDao extends AbstractDbDao implements IAccountBalanc
 		List<Query> queries = super.createJdbcQueries(INSERT_NEW_VALUES, accountBalanceList.size(), 5, accountBalanceList, getInsertFunctions());
 		queries.add(0, updateQuery);
 		super.performTransaction(queries);
+	}
+
+	@Override
+	public List<AccountBalance> getAccountBalance() {
+		Query query = new Query(SELECT_VALIDS, getUserCtx().getUserId());
+		List<InquiryResult> results = super.performInquiry(query);
+		return StreamUtil.map(results, this::parseAccounBalance);
 	}
 
 	private AccountBalance parseAccounBalance(InquiryResult ir) {

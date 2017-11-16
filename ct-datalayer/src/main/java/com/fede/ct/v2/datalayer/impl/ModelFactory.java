@@ -6,6 +6,7 @@ import com.fede.ct.v2.common.logger.SimpleLog;
 import com.fede.ct.v2.dao.impl.*;
 import com.fede.ct.v2.datalayer.IModelPrivate;
 import com.fede.ct.v2.datalayer.IModelPublic;
+import com.fede.ct.v2.datalayer.IModelTrading;
 
 /**
  * Created by f.barbano on 05/11/2017.
@@ -27,6 +28,16 @@ public class ModelFactory {
 		model.setPropertiesDao(new PropertiesDbDao(ctx));
 		model.setOrdersDao(new OrdersDbDao(ctx));
 		model.setAccountBalanceDao(new AccountBalanceDbDao(ctx));
+		return model;
+	}
+
+	public static IModelTrading createModelTrading(CryptoContext ctx) {
+		ModelTradingImpl model = new ModelTradingImpl();
+		model.setAssetPairsDao(new AssetPairsDbDao(ctx));
+		model.setPropertiesDao(new PropertiesDbDao(ctx));
+		model.setTickersDao(new TickersDbDao(ctx));
+		model.setAccountBalanceDao(new AccountBalanceDbDao(ctx));
+		model.setOrdersDao(new OrdersDbDao(ctx));
 		return model;
 	}
 

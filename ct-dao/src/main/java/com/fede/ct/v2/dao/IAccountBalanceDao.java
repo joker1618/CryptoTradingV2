@@ -12,6 +12,7 @@ public interface IAccountBalanceDao {
 
 	void addAccountBalance(List<AccountBalance> accountBalanceList);
 
+	List<AccountBalance> getAccountBalance();
 
 
 

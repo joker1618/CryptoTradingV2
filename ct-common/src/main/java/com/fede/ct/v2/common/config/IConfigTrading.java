@@ -5,7 +5,9 @@ import java.math.BigDecimal;
 /**
  * Created by f.barbano on 07/11/2017.
  */
-public interface IConfigStrategy {
+public interface IConfigTrading {
+
+	void loadConfigFromFile(String configPath);
 
 	String getAssetPairName();
 	

@@ -18,8 +18,8 @@ import java.util.function.Function;
 public class OrdersDbDao extends AbstractDbDao implements IOrdersDao {
 
 	private static final String REPLACE_ORDERS_PREFIX = "REPLACE INTO ORDERS (ORDER_TX_ID,USER_ID,REF_ID,USER_REF,STATUS,REASON,OPENTM,CLOSETM,STARTTM,EXPIRETM,VOL,VOL_EXEC,COST,FEE,AVG_PRICE,STOP_PRICE,LIMIT_PRICE,MISC,OFLAGS,TRADES_ID,DESCR_PAIR_NAME,DESCR_ORDER_ACTION,DESCR_ORDER_TYPE,DESCR_PRICE,DESCR_PRICE2,DESCR_LEVERAGE,DESCR_ORDER_DESCR,DESCR_CLOSE_DESCR) VALUES ";
-	private static final String SELECT_OPEN_ORDERS = "SELECT ORDER_TX_ID FROM ORDERS WHERE STATUS = 'open' AND USER_ID = ?";
-	private static final String SELECT_ORDERS_STATUS = "SELECT ORDER_TX_ID, STATUS FROM ORDERS WHERE ORDER_TX_ID IN ('%s') AND USER_ID = %d";
+	private static final String SELECT_ORDERS_BY_OPEN_TM = "SELECT ORDER_TX_ID,REF_ID,USER_REF,STATUS,REASON,OPENTM,CLOSETM,STARTTM,EXPIRETM,VOL,VOL_EXEC,COST,FEE,AVG_PRICE,STOP_PRICE,LIMIT_PRICE,MISC,OFLAGS,TRADES_ID,DESCR_PAIR_NAME,DESCR_ORDER_ACTION,DESCR_ORDER_TYPE,DESCR_PRICE,DESCR_PRICE2,DESCR_LEVERAGE,DESCR_ORDER_DESCR,DESCR_CLOSE_DESCR FROM ORDERS WHERE USER_ID = ? AND OPEN_TM >= ? AND OPEN_TM <= ?";
+	private static final String SELECT_ORDERS_STATUS = "SELECT ORDER_TX_ID, STATUS FROM ORDERS WHERE USER_ID = ? AND ORDER_TX_ID IN ";
 
 	public OrdersDbDao(CryptoContext ctx) {
 		super(ctx);
@@ -30,6 +30,26 @@ public class OrdersDbDao extends AbstractDbDao implements IOrdersDao {
 	public void updateOrders(List<OrderInfo> orders) {
 		List<Query> queries = super.createJdbcQueries(REPLACE_ORDERS_PREFIX, orders.size(), 28, orders, getOrderInfoParse());
 		super.performTransaction(queries);
+	}
+
+	@Override
+	public List<OrderInfo> getOrdersStatus(List<String> txIds) {
+		List<Object> values = new ArrayList<>(txIds);
+		values.add(0, getUserCtx().getUserId());
+		List<Query> queries = super.createJdbcQueries(SELECT_ORDERS_STATUS, 1, txIds.size(), values, o -> o);
+		List<OrderInfo> toRet = new ArrayList<>();
+		for(Query query : queries) {
+			List<InquiryResult> res = super.performInquiry(query);
+			toRet.addAll(StreamUtil.map(res, this::parseOrderInfo));
+		}
+		return toRet;
+	}
+
+	@Override
+	public List<OrderInfo> getOrdersByOpenTm(Long minOpenTm, Long maxOpenTm) {
+		Query query = new Query(SELECT_ORDERS_BY_OPEN_TM, getUserCtx().getUserId(), minOpenTm, maxOpenTm);
+		List<InquiryResult> results = super.performInquiry(query);
+		return StreamUtil.map(results, this::parseOrderInfo);
 	}
 
 	private List<Function<OrderInfo, Object>> getOrderInfoParse() {

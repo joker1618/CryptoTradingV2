@@ -36,7 +36,7 @@ public class LoginService {
 			return new CryptoContext(RunType.PUBLIC, createConnection());
 		}
 
-		if(runType == RunType.PRIVATE || runType == RunType.STRATEGY) {
+		if(runType == RunType.PRIVATE || runType == RunType.TRADING) {
 			Connection dbConn = createConnection();
 			CryptoContext ctx = new CryptoContext(runType, dbConn);
 			IUsersDao usersDao = new UsersDbDao(ctx);

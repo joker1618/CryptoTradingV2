@@ -8,5 +8,6 @@ public class Const {
 	public static final String CONFIG_SETTINGS_PATH = "config/settings.properties";
 	public static final String CONFIG_PUBLIC_PATH = "config/public.properties";
 	public static final String CONFIG_PRIVATE_PATH = "config/private.properties";
+	public static final String CONFIG_TRADING_PATH = "config/simpleThresold.strategy";
 
 }

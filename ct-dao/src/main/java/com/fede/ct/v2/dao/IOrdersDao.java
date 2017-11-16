@@ -11,7 +11,9 @@ public interface IOrdersDao {
 
 	void updateOrders(List<OrderInfo> orders);
 
-//	List<String> getOpenOrders(int userId);
-//	List<OrderInfo> getOrdersStatus(int userId, List<String> orderTxId);
+	List<OrderInfo> getOrdersStatus(List<String> txIds);
+
+	List<OrderInfo> getOrdersByOpenTm(Long minOpenTm, Long maxOpenTm);
+
 
 }
