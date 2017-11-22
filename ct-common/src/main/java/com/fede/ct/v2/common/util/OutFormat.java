@@ -31,6 +31,9 @@ public class OutFormat {
 	public static String toStringNum(BigDecimal num) {
 		return getEnglishFormat().format(num);
 	}
+	public static String toStringNum(Double num) {
+		return getEnglishFormat().format(num);
+	}
 
 
 	public static String toStringElapsed(long start, long end, boolean showMilli) {

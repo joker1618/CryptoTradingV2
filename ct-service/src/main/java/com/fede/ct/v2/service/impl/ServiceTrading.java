@@ -25,6 +25,7 @@ import com.fede.ct.v2.kraken.impl.KrakenFactory;
 import com.fede.ct.v2.service.ICryptoService;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -67,6 +68,7 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 
 		if(orderInProgress == null) {
 			BigDecimal buyPrice = computeBuyPrice();
+			logger.info("Buy price = %s", OutFormat.toStringNum(buyPrice));
 			if (buyPrice != null) {
 				modelTrading.turnOnDownloadOrders();
 				emitBuyOrder(buyPrice);
@@ -76,14 +78,18 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 			List<OrderInfo> orders = modelTrading.getOrdersStatus(orderInProgress.out.getTxIDs());
 			orders.removeIf(o -> !o.isOrderActive());
 
+			logger.info("Open orders found: %d", orders.size());
+
 			if(orders.isEmpty()) {
 				// No active orders found
 				AddOrderIn req = orderInProgress.in;
 				if(req.getOrderAction() == OrderAction.BUY) {
 					AddOrderIn sellReq = createSellOrderRequest(req);
+					logger.info("Sell order = %s", toStringOrderIn(sellReq));
 					modelTrading.turnOnDownloadOrders();
 					emitSellOrder(sellReq);
 				} else if(req.getOrderAction() == OrderAction.SELL) {
+					logger.info("Sell order %s got away", orderInProgress.out.getTxIDs());
 					orderInProgress = null;
 				}
 			}
@@ -97,6 +103,7 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 		BigDecimal avgPriceLast24 = ticker.getWeightedAverageVolume().getLast24Hours();
 		Double percBuy = 1d - configTrading.getDeltaPercBuy();
 		BigDecimal buyPrice = AltMath.mult(avgPriceLast24, percBuy);
+		logger.debug("ask= %s, last24= %s, buyPrice=%s", OutFormat.toStringNum(askPrice), OutFormat.toStringNum(avgPriceLast24), OutFormat.toStringNum(buyPrice));
 		return askPrice.compareTo(buyPrice) <= 0 ? buyPrice : null;
 	}
 
@@ -108,25 +115,35 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 		}
 
 		BigDecimal assetBalance = getAssetBalance();
+		logger.debug("Account balance for %s = %s", tradedAssetPair.getPairName(), OutFormat.toStringNum(assetBalance));
 		assetBalance = assetBalance == null ? BigDecimal.ZERO : assetBalance;
 		if(assetBalance == null || assetBalance.compareTo(BigDecimal.ZERO) <= 0) {
 			logger.warning("Unable to emit order: no money in account");
 			return;
 		}
 
-		if(assetBalance.compareTo(buyPrice) < 0) {
+		BigDecimal notional = configTrading.getNotional();
+		if(assetBalance.compareTo(notional) < 0) {
 			logger.info("Notional reduced from %s to %s: not enough money in account", OutFormat.toStringNum(buyPrice), OutFormat.toStringNum(assetBalance));
-			buyPrice = assetBalance;
+			notional = assetBalance;
 		}
 
-		BigDecimal volume = configTrading.getNotional().divide(buyPrice);
+		BigDecimal volume = AltMath.divide(notional, buyPrice);
 		AddOrderIn orderIn = OrderRequest.createBuyLimitOrderIn(tradedAssetPair.getPairName(), buyPrice, volume);
 		AddOrderOut orderOut;
+		logger.debug("%s", toStringOrderIn(orderIn));
 		Long beforeCall = System.currentTimeMillis();
 		try {
 			orderOut = krakenTrading.emitOrder(orderIn);
+			logger.info("Order emitted: tx id = %s", orderOut.getTxIDs());
 		} catch (Exception ex) {
+			logger.info("Emit order raise exception... Try to retrieve order tx if exists...");
 			orderOut = retrieveOrderResponse(orderIn, beforeCall);
+			if(orderOut != null) {
+				logger.info("Order emitted (retrieved): tx id = %s", orderOut.getTxIDs());
+			} else {
+				logger.info("Order buy not emitted on Kraken");
+			}
 		}
 
 		if(orderOut != null) {
@@ -135,8 +152,18 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 	}
 
 	private BigDecimal getAssetBalance() {
-		AccountBalance assetBalance = modelTrading.getAssetBalance(tradedAssetPair.getBase());
+		AccountBalance assetBalance = modelTrading.getAssetBalance(tradedAssetPair.getQuote());
 		return assetBalance == null ? BigDecimal.ZERO : assetBalance.getBalance();
+	}
+
+	private String toStringOrderIn(AddOrderIn orderIn) {
+		return String.format("[%s, %s, assetPair=%s, price=%s, volume=%s]",
+			orderIn.getOrderAction().label(),
+			orderIn.getOrderType().label(),
+			orderIn.getPairName(),
+			OutFormat.toStringNum(orderIn.getPrice()),
+			OutFormat.toStringNum(orderIn.getVolume())
+		);
 	}
 
 	private AddOrderOut retrieveOrderResponse(AddOrderIn request, Long minOpenTm) {
@@ -159,28 +186,42 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 	}
 
 	private AddOrderIn createSellOrderRequest(AddOrderIn in) {
-		BigDecimal notional = configTrading.getNotional();
 		Double feesBuy = configTrading.getFeesPercBuy();
+		Double feesSell = configTrading.getFeesPercSell();
+		Double percSell = configTrading.getDeltaPercSell();
+
 		BigDecimal buyPrice = in.getPrice();
+		Double buyVolume = in.getVolume();
 
-		BigDecimal realBuyNotional = AltMath.mult(notional, 1d - feesBuy);
-		BigDecimal realBuyVolume = realBuyNotional.divide(buyPrice);
+		BigDecimal buyNotional = AltMath.mult(buyPrice, buyVolume);
+		Double multiplier = (1 + feesBuy + percSell) * (1 + feesSell);
 
-		BigDecimal sellNotional = AltMath.mult(realBuyNotional, 1d + configTrading.getDeltaPercSell() + configTrading.getFeesPercSell());
-		BigDecimal sellPrice = sellNotional.divide(realBuyVolume);
+		BigDecimal sellNotional = AltMath.mult(buyNotional, multiplier);
+		BigDecimal sellPrice = AltMath.divide(sellNotional, buyVolume);
 
-		return OrderRequest.createSellLimitOrderIn(tradedAssetPair.getPairName(), sellPrice, realBuyVolume);
+		return OrderRequest.createSellLimitOrderIn(tradedAssetPair.getPairName(), sellPrice, buyVolume);
 	}
 
 	private void emitSellOrder(AddOrderIn request) {
 		AddOrderOut orderOut;
 		long callTime = System.currentTimeMillis();
+
 		try {
 			orderOut = krakenTrading.emitOrder(request);
+			logger.info("Sell order emitted: %s", orderOut.getTxIDs());
 		} catch (Exception ex) {
+			logger.info("Exception raised emitting sell order");
 			orderOut = retrieveOrderResponse(request, callTime);
+			if(orderOut != null) {
+				logger.info("Sell order retrieved: %s", orderOut.getTxIDs());
+			} else {
+				logger.info("Order sell not emitted on Kraken");
+			}
 		}
-		orderInProgress = new OrderInProgress(request, orderOut);
+
+		if(orderOut != null) {
+			orderInProgress = new OrderInProgress(request, orderOut);
+		}
 	}
 
 	private void initTradedAssetPair() {

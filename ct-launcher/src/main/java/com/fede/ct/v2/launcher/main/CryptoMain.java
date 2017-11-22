@@ -48,7 +48,7 @@ public final class CryptoMain {
 		usage += String.format("   java -jar %s REGISTER_USER <username> <file containing kraken api & secret\n", jarName);
 		usage += String.format("   java -jar %s [PUBLIC]\n", jarName);
 		usage += String.format("   java -jar %s PRIVATE <user ID> [<private config file path>]\n", jarName);
-		usage += String.format("   java -jar %s STRATEGY <user ID> [<strategy config file path>]", jarName);
+		usage += String.format("   java -jar %s TRADING <user ID> [<strategy config file path>]", jarName);
 		USAGE = usage;
 	}
 

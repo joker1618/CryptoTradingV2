@@ -1,6 +1,7 @@
 package com.fede.ct.v2.common.util;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /**
  * Created by f.barbano on 15/11/2017.
@@ -29,5 +30,13 @@ public class AltMath {
 			}
 		}
 		return max;
+	}
+
+	public static BigDecimal divide(BigDecimal numerator, BigDecimal denominator) {
+		return numerator.divide(denominator, 10, RoundingMode.FLOOR);
+	}
+
+	public static BigDecimal divide(BigDecimal numerator, Double denominator) {
+		return divide(numerator, BigDecimal.valueOf(denominator));
 	}
 }

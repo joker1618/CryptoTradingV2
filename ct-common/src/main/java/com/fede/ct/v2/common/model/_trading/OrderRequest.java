@@ -17,8 +17,8 @@ public class OrderRequest {
 		return request;
 	}
 
-	public static AddOrderIn createSellLimitOrderIn(String pairName, BigDecimal price, BigDecimal volume) {
-		AddOrderIn request = new AddOrderIn(pairName, OrderAction.SELL, OrderType.LIMIT, volume.doubleValue());
+	public static AddOrderIn createSellLimitOrderIn(String pairName, BigDecimal price, Double volume) {
+		AddOrderIn request = new AddOrderIn(pairName, OrderAction.SELL, OrderType.LIMIT, volume);
 		request.setPrice(price);
 		return request;
 	}
