@@ -16,6 +16,7 @@ public interface ISettings {
 	// Logger config
 	Level getLoggerLevel();
 	Level getConsoleLevel();
+	Level getConsoleLevelTrading();
 	Path getLogErrorPath();
 	Path getLogAllPath();
 

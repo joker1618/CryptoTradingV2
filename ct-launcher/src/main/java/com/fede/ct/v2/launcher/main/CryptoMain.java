@@ -54,14 +54,30 @@ public final class CryptoMain {
 
 	public static void main(String[] args) {
 		try {
-			initLogger();
+			RunType runType = retrieveRunType(args);
+			logger.info("Run type: %s", runType);
+
+			initLogger(runType);
 			logger.config("SETTINGS:\n%s", settings);
 
 			parseInputAndManage(args);
 			
-		} catch(TechnicalException ex) {
+		} catch(Exception ex) {
 			logger.error("Error found: %s", ex.getMessage());
 		}
+	}
+
+	private static RunType retrieveRunType(String[] args) {
+		RunType runType = RunType.PUBLIC;
+		if(args.length > 0) {
+			try {
+				runType = RunType.valueOf(args[0].toUpperCase());
+			} catch (Exception e) {
+				showUsageAndExit();
+				// exit
+			}
+		}
+		return runType;
 	}
 
 	private static void parseInputAndManage(String[] args) {
@@ -174,16 +190,16 @@ public final class CryptoMain {
 		System.exit(1);
 	}
 
-	private static void initLogger() {
+	private static void initLogger(RunType runType) {
 		try {
-			LogService.configure(getLoggerConfig());
+			LogService.configure(getLoggerConfig(runType));
 		} catch (IOException e) {
 			logger.error(e, "Unable to init logger");
 			System.exit(2);
 		}
 	}
 
-	private static LogServiceConfig getLoggerConfig() {
+	private static LogServiceConfig getLoggerConfig(RunType runType) {
 		return new LogServiceConfig() {
 			@Override
 			public String getRootLoggerName() {
@@ -192,7 +208,11 @@ public final class CryptoMain {
 
 			@Override
 			public Level getConsoleLevel() {
-				return settings.getConsoleLevel();
+				if(runType == TRADING) {
+					return settings.getConsoleLevelTrading();
+				} else {
+					return settings.getConsoleLevel();
+				}
 			}
 
 			@Override

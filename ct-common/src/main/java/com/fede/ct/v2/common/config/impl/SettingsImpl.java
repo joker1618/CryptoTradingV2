@@ -41,6 +41,12 @@ class SettingsImpl extends AbstractConfig implements ISettings {
 	public Level getConsoleLevel() {
 		return getLoggerLevel(CommonKeys.CONSOLE_LEVEL);
 	}
+
+	@Override
+	public Level getConsoleLevelTrading() {
+		return getLoggerLevel(CommonKeys.CONSOLE_LEVEL_TRADING);
+	}
+
 	@Override
 	public Path getLogErrorPath() {
 		String fileName = getString(CommonKeys.LOG_ERROR_FILENAME);

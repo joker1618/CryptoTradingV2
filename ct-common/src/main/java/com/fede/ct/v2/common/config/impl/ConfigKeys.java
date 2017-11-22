@@ -14,6 +14,7 @@ public class ConfigKeys {
 		public static final String LOG_FOLDER = "logsFolder";
 		public static final String LOGGER_LEVEL = "ct.logger.level";
 		public static final String CONSOLE_LEVEL = "ct.logger.console.level";
+		public static final String CONSOLE_LEVEL_TRADING = "ct.logger.console.trading.level";
 		public static final String LOG_ERROR_FILENAME = "ct.logger.file.error.name";
 		public static final String LOG_ALL_FILENAME = "ct.logger.file.all.name";
 	}
