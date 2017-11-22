@@ -41,5 +41,6 @@ public class ConfigKeys {
 		public static final String DELTA_PERC_SELL = "ct.trading.delta.perc.sell";
 		public static final String FEES_PERC_BUY = "ct.trading.fees.perc.buy";
 		public static final String FEES_PERC_SELL = "ct.trading.fees.perc.sell";
+		public static final String DATA_VALID_SECONDS = "ct.trading.data.valid.seconds";
 	}
 }

@@ -19,4 +19,6 @@ public interface IConfigTrading {
 	Double getFeesPercBuy();
 	Double getFeesPercSell();
 
+	int getDataValidSeconds();
+
 }

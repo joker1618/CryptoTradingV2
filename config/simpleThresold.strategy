@@ -12,18 +12,21 @@
 #
 ###################################
 
-ct.trading.assetPair=XXBTZUSD
+ct.trading.assetPair=XXBTZEUR
 
 # importo degli ordini in €
 ct.trading.notional=20
 
 # % da applicare all'importo per decidere i prezzi buy/sell
-ct.trading.delta.perc.buy=0.11
-ct.trading.delta.perc.sell=0.09
+ct.trading.delta.perc.buy=0.02
+ct.trading.delta.perc.sell=0.02
 
 # tasse sulla transazione
-ct.trading.fees.perc.buy=0.16
-ct.trading.fees.perc.sell=0.26
+ct.trading.fees.perc.buy=0.0016
+ct.trading.fees.perc.sell=0.0026
+
+# quando calcolo il prezzo di vendita, controllo che i valori del tickers siano stati scaricati non più di X secondi prima
+ct.trading.data.valid.seconds=90
 
 
 

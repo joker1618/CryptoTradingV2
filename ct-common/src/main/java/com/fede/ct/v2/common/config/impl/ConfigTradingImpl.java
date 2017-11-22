@@ -45,4 +45,9 @@ public class ConfigTradingImpl extends AbstractConfig implements IConfigTrading 
 	public Double getFeesPercSell() {
 		return getDouble(TradingKeys.FEES_PERC_SELL);
 	}
+
+	@Override
+	public int getDataValidSeconds() {
+		return getInt(TradingKeys.DATA_VALID_SECONDS);
+	}
 }

@@ -99,12 +99,23 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 
 	private BigDecimal computeBuyPrice() {
 		Ticker ticker = modelTrading.getTickerAskPriceAndAvgLast24(tradedAssetPair.getPairName());
-		BigDecimal askPrice = ticker.getAsk().getPrice();
-		BigDecimal avgPriceLast24 = ticker.getWeightedAverageVolume().getLast24Hours();
-		Double percBuy = 1d - configTrading.getDeltaPercBuy();
-		BigDecimal buyPrice = AltMath.mult(avgPriceLast24, percBuy);
-		logger.debug("ask= %s, last24= %s, buyPrice=%s", OutFormat.toStringNum(askPrice), OutFormat.toStringNum(avgPriceLast24), OutFormat.toStringNum(buyPrice));
-		return askPrice.compareTo(buyPrice) <= 0 ? buyPrice : null;
+
+		if(canPriceBeComputed(ticker)) {
+			BigDecimal askPrice = ticker.getAsk().getPrice();
+			BigDecimal avgPriceLast24 = ticker.getWeightedAverageVolume().getLast24Hours();
+			Double percBuy = 1d - configTrading.getDeltaPercBuy();
+			BigDecimal buyPrice = AltMath.mult(avgPriceLast24, percBuy);
+			logger.debug("ask=%s, avgLast24=%s, buyPrice=%s", OutFormat.toStringNum(askPrice), OutFormat.toStringNum(avgPriceLast24), OutFormat.toStringNum(buyPrice));
+			return askPrice.compareTo(buyPrice) <= 0 ? buyPrice : null;
+		}
+
+		logger.info("Tickers data too old (older than %d seconds)", configTrading.getDataValidSeconds());
+		return null;
+	}
+
+	private boolean canPriceBeComputed(Ticker ticker) {
+		int windowMillis = configTrading.getDataValidSeconds() * 1000;
+		return (System.currentTimeMillis() - windowMillis) <= ticker.getCallTime();
 	}
 
 	private void emitBuyOrder(BigDecimal buyPrice) {
