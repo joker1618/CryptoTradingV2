@@ -34,7 +34,7 @@ public class ConfigKeys {
 	}
 
 	/* Strategy keys */
-	public static class TradingKeys {
+	public static class SimpleThresoldKeys {
 		public static final String ASSET_PAIR = "ct.trading.assetPair";
 		public static final String NOTIONAL = "ct.trading.notional";
 		public static final String DELTA_PERC_BUY = "ct.trading.delta.perc.buy";
@@ -42,5 +42,6 @@ public class ConfigKeys {
 		public static final String FEES_PERC_BUY = "ct.trading.fees.perc.buy";
 		public static final String FEES_PERC_SELL = "ct.trading.fees.perc.sell";
 		public static final String DATA_VALID_SECONDS = "ct.trading.data.valid.seconds";
+		public static final String RETRIEVE_TX_NUMBER_TRY = "ct.tradind.data.retrieve.txId.times";
 	}
 }

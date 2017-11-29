@@ -47,6 +47,7 @@ abstract class AbstractKrakenCaller {
 			}
 
 			// perform kraken call
+			logger.debug("Method: %s; params: %s", method, apiParamMap);
 			String json = method.isPublic() ? krakenApi.queryPublic(method, apiParamMap) : krakenApi.queryPrivate(method, apiParamMap);
 			long endTime = System.currentTimeMillis();
 			logger.debug("Kraken call (%s): elapsed %s", method.getName(), OutFormat.toStringElapsed(startTime, endTime, true));
@@ -54,6 +55,7 @@ abstract class AbstractKrakenCaller {
 
 			JsonToModel jm = new JsonToModel(json);
 			if(jm.containsErrors()) {
+				logger.debug("JSON error: %s", jm.getErrors());
 				throw new KrakenCallError(method, jm.getErrors());
 			}
 

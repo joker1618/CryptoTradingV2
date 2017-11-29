@@ -36,19 +36,16 @@ public class LoginService {
 			return new CryptoContext(RunType.PUBLIC, createConnection());
 		}
 
-		if(runType == RunType.PRIVATE || runType == RunType.TRADING) {
-			Connection dbConn = createConnection();
-			CryptoContext ctx = new CryptoContext(runType, dbConn);
-			IUsersDao usersDao = new UsersDbDao(ctx);
-			UserCtx userCtx = usersDao.getByUserId(userId);
-			if(userCtx == null) {
-				throw new TechnicalException("User ID %d not registered", userId);
-			}
-			ctx.setUserCtx(userCtx);
-			return ctx;
+		Connection dbConn = createConnection();
+		CryptoContext ctx = new CryptoContext(runType, dbConn);
+		IUsersDao usersDao = new UsersDbDao(ctx);
+		UserCtx userCtx = usersDao.getByUserId(userId);
+		if(userCtx == null) {
+			throw new TechnicalException("User ID %d not registered", userId);
 		}
+		ctx.setUserCtx(userCtx);
+		return ctx;
 
-		return null;
 	}
 
 	private static Connection createConnection() {

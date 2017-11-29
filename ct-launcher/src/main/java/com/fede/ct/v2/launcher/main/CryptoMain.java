@@ -29,7 +29,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import static com.fede.ct.v2.common.context.RunType.PRIVATE;
-import static com.fede.ct.v2.common.context.RunType.TRADING;
+import static com.fede.ct.v2.common.context.RunType.SIMPLE_THRESOLD;
 import static com.fede.ct.v2.common.logger.LogService.LogServiceConfig;
 
 /**
@@ -46,9 +46,9 @@ public final class CryptoMain {
 		String jarName = CryptoMain.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 		String usage = "USAGE\n";
 		usage += String.format("   java -jar %s REGISTER_USER <username> <file containing kraken api & secret\n", jarName);
-		usage += String.format("   java -jar %s [PUBLIC]\n", jarName);
+		usage += String.format("   java -jar %s PUBLIC\n", jarName);
 		usage += String.format("   java -jar %s PRIVATE <user ID> [<private config file path>]\n", jarName);
-		usage += String.format("   java -jar %s TRADING <user ID> [<strategy config file path>]", jarName);
+		usage += String.format("   java -jar %s SIMPLE_THRESOLD <user ID> <strategy config file path>", jarName);
 		USAGE = usage;
 	}
 
@@ -97,8 +97,8 @@ public final class CryptoMain {
 			managePublic(args);
 		} else if(runType == RunType.PRIVATE) {
 			managePrivate(args);
-		} else if(runType == RunType.TRADING) {
-			manageTrading(args);
+		} else if(runType == RunType.SIMPLE_THRESOLD) {
+			manageSimpleThresold(args);
 		} else if(runType == RunType.REGISTER_USER) {
 			manageRegisterUser(args);
 		} else {
@@ -137,18 +137,19 @@ public final class CryptoMain {
 		ICryptoService service = new ServicePrivate(ctx);
 		service.startEngine();
 	}
-	private static void manageTrading(String[] args) {
-		if((args.length != 2 && args.length != 3) || !CheckUtils.isInteger(args[1])) {
+	private static void manageSimpleThresold(String[] args) {
+		if(args.length != 3 || !CheckUtils.isInteger(args[1])) {
 			showUsageAndExit();
 		}
-		if(args.length == 3 && !Files.exists(Paths.get(args[2]))) {
-			exit("File %s does not exists", args[2]);
+
+		String configPath = args[2];
+		if(!Files.exists(Paths.get(configPath))) {
+			exit("File %s does not exists", configPath);
 		}
 
-		String configPath = args.length == 2 ? Const.CONFIG_TRADING_PATH : args[2];
 		ConfigService.getConfigTrading().loadConfigFromFile(configPath);
 
-		CryptoContext ctx = LoginService.createContext(TRADING, Converter.stringToInteger(args[1]));
+		CryptoContext ctx = LoginService.createContext(SIMPLE_THRESOLD, Converter.stringToInteger(args[1]));
 		ICryptoService service = new ServiceTrading(ctx);
 		service.startEngine();
 	}
@@ -208,7 +209,7 @@ public final class CryptoMain {
 
 			@Override
 			public Level getConsoleLevel() {
-				if(runType == TRADING) {
+				if(runType == SIMPLE_THRESOLD) {
 					return settings.getConsoleLevelTrading();
 				} else {
 					return settings.getConsoleLevel();

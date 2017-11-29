@@ -1,6 +1,8 @@
 package com.fede.ct.v2.dao.impl;
 
 import com.fede.ct.v2.common.context.CryptoContext;
+import com.fede.ct.v2.common.logger.LogService;
+import com.fede.ct.v2.common.logger.SimpleLog;
 import com.fede.ct.v2.common.model._private.OrderInfo;
 import com.fede.ct.v2.common.model._private.OrderInfo.OrderDescr;
 import com.fede.ct.v2.common.model.types.*;
@@ -17,8 +19,10 @@ import java.util.function.Function;
  */
 public class OrdersDbDao extends AbstractDbDao implements IOrdersDao {
 
+	private static final SimpleLog logger = LogService.getLogger(OrdersDbDao.class);
+
 	private static final String REPLACE_ORDERS_PREFIX = "REPLACE INTO ORDERS (ORDER_TX_ID,USER_ID,REF_ID,USER_REF,STATUS,REASON,OPENTM,CLOSETM,STARTTM,EXPIRETM,VOL,VOL_EXEC,COST,FEE,AVG_PRICE,STOP_PRICE,LIMIT_PRICE,MISC,OFLAGS,TRADES_ID,DESCR_PAIR_NAME,DESCR_ORDER_ACTION,DESCR_ORDER_TYPE,DESCR_PRICE,DESCR_PRICE2,DESCR_LEVERAGE,DESCR_ORDER_DESCR,DESCR_CLOSE_DESCR) VALUES ";
-	private static final String SELECT_ORDERS_BY_OPEN_TM = "SELECT ORDER_TX_ID,REF_ID,USER_REF,STATUS,REASON,OPENTM,CLOSETM,STARTTM,EXPIRETM,VOL,VOL_EXEC,COST,FEE,AVG_PRICE,STOP_PRICE,LIMIT_PRICE,MISC,OFLAGS,TRADES_ID,DESCR_PAIR_NAME,DESCR_ORDER_ACTION,DESCR_ORDER_TYPE,DESCR_PRICE,DESCR_PRICE2,DESCR_LEVERAGE,DESCR_ORDER_DESCR,DESCR_CLOSE_DESCR FROM ORDERS WHERE USER_ID = ? AND OPEN_TM >= ? AND OPEN_TM <= ?";
+	private static final String SELECT_ORDERS_BY_OPEN_TM = "SELECT ORDER_TX_ID,REF_ID,USER_REF,STATUS,REASON,OPENTM,CLOSETM,STARTTM,EXPIRETM,VOL,VOL_EXEC,COST,FEE,AVG_PRICE,STOP_PRICE,LIMIT_PRICE,MISC,OFLAGS,TRADES_ID,DESCR_PAIR_NAME,DESCR_ORDER_ACTION,DESCR_ORDER_TYPE,DESCR_PRICE,DESCR_PRICE2,DESCR_LEVERAGE,DESCR_ORDER_DESCR,DESCR_CLOSE_DESCR FROM ORDERS WHERE USER_ID = ? AND OPENTM >= ? AND OPENTM <= ?";
 	private static final String SELECT_ORDERS_STATUS = "SELECT ORDER_TX_ID, STATUS FROM ORDERS WHERE USER_ID = ? AND ORDER_TX_ID IN ";
 
 	public OrdersDbDao(CryptoContext ctx) {
@@ -48,6 +52,7 @@ public class OrdersDbDao extends AbstractDbDao implements IOrdersDao {
 	@Override
 	public List<OrderInfo> getOrdersByOpenTm(Long minOpenTm, Long maxOpenTm) {
 		Query query = new Query(SELECT_ORDERS_BY_OPEN_TM, getUserCtx().getUserId(), minOpenTm, maxOpenTm);
+		logger.debug("Query: %s", query);
 		List<InquiryResult> results = super.performInquiry(query);
 		return StreamUtil.map(results, this::parseOrderInfo);
 	}

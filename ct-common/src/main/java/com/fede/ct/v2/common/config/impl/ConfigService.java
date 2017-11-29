@@ -2,7 +2,7 @@ package com.fede.ct.v2.common.config.impl;
 
 import com.fede.ct.v2.common.config.IConfigPrivate;
 import com.fede.ct.v2.common.config.IConfigPublic;
-import com.fede.ct.v2.common.config.IConfigTrading;
+import com.fede.ct.v2.common.config.IConfigThresold;
 import com.fede.ct.v2.common.config.ISettings;
 import com.fede.ct.v2.common.constants.Const;
 
@@ -14,7 +14,7 @@ public class ConfigService {
 	private static ISettings settings;
 	private static IConfigPublic configPublic;
 	private static IConfigPrivate configPrivate;
-	private static IConfigTrading configTrading;
+	private static IConfigThresold configTrading;
 
 	public static synchronized ISettings getSettings() {
 		if(settings == null) {
@@ -37,9 +37,9 @@ public class ConfigService {
 		return configPrivate;
 	}
 
-	public static synchronized IConfigTrading getConfigTrading() {
+	public static synchronized IConfigThresold getConfigTrading() {
 		if(configTrading == null) {
-			configTrading = new ConfigTradingImpl();
+			configTrading = new ConfigThresoldImpl();
 		}
 		return configTrading;
 	}

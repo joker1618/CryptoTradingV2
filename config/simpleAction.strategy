@@ -7,6 +7,12 @@ ct.trading.assetPair=XXBTZEUR
 # importo degli ordini in €
 ct.trading.notional=20
 
+# action to perform [BUY, SELL]
+ct.trading.action=BUY
+
+# value meaning
+
+
 # % da applicare all'importo per decidere i prezzi buy/sell
 ct.trading.delta.perc.buy=0.02
 ct.trading.delta.perc.sell=0.02
@@ -17,10 +23,6 @@ ct.trading.fees.perc.sell=0.0026
 
 # quando calcolo il prezzo di vendita, controllo che i valori del tickers siano stati scaricati non più di X secondi prima
 ct.trading.data.valid.seconds=90
-
-# numero di volte che si cerca di recuperare il txId se viene lanciata un'eccezione in fase di emissione dell'ordine
-ct.tradind.data.retrieve.txId.times=10
-
 
 
 

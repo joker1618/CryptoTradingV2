@@ -1,0 +1,7 @@
+Asset -> decimals: is the number of decimals for a given asset. To be used in AccountBalance
+
+AssetPairs
+    - pairDecimals: number of decimals for the price
+    - lotDecimals: number of decimals for the volume
+
+

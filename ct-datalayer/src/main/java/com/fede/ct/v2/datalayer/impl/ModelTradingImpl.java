@@ -36,7 +36,7 @@ class ModelTradingImpl implements IModelTrading {
 	@Override
 	public AccountBalance getAssetBalance(String assetName) {
 		List<AccountBalance> abList = accountBalanceDao.getAccountBalance();
-		abList.removeIf(ab -> assetName.equalsIgnoreCase(ab.getAssetName()));
+		abList.removeIf(ab -> !assetName.equalsIgnoreCase(ab.getAssetName()));
 		return abList.isEmpty() ? null : abList.get(0);
 	}
 

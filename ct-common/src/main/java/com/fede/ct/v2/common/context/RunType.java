@@ -8,7 +8,10 @@ public enum RunType {
 	REGISTER_USER,
 	PUBLIC,
 	PRIVATE,
-	TRADING
+
+	// TRADING
+	SIMPLE_THRESOLD,
+	SINGLE_ACTION
 
 
 }

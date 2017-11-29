@@ -1,6 +1,6 @@
 package com.fede.ct.v2.service.impl;
 
-import com.fede.ct.v2.common.config.IConfigTrading;
+import com.fede.ct.v2.common.config.IConfigThresold;
 import com.fede.ct.v2.common.config.impl.ConfigService;
 import com.fede.ct.v2.common.context.CryptoContext;
 import com.fede.ct.v2.common.exception.TechnicalException;
@@ -25,7 +25,6 @@ import com.fede.ct.v2.kraken.impl.KrakenFactory;
 import com.fede.ct.v2.service.ICryptoService;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -41,7 +40,7 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 	private static final int SECOND_SLEEP_RETRIEVE_ORDER = 5;
 	private static final int DB_POLL_RATE = 5;
 
-	private final IConfigTrading configTrading = ConfigService.getConfigTrading();
+	private final IConfigThresold configTrading = ConfigService.getConfigTrading();
 	private final IKrakenTrading krakenTrading;
 	private final IModelTrading modelTrading;
 
@@ -67,7 +66,7 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 	private void doTradingStrategy() {
 
 		if(orderInProgress == null) {
-			BigDecimal buyPrice = computeBuyPrice();
+			BigDecimal buyPrice = computeLimitPrice();
 			logger.info("Buy price = %s", OutFormat.toStringNum(buyPrice));
 			if (buyPrice != null) {
 				modelTrading.turnOnDownloadOrders();
@@ -97,16 +96,16 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 
 	}
 
-	private BigDecimal computeBuyPrice() {
+	private BigDecimal computeLimitPrice() {
 		Ticker ticker = modelTrading.getTickerAskPriceAndAvgLast24(tradedAssetPair.getPairName());
 
 		if(canPriceBeComputed(ticker)) {
 			BigDecimal askPrice = ticker.getAsk().getPrice();
 			BigDecimal avgPriceLast24 = ticker.getWeightedAverageVolume().getLast24Hours();
 			Double percBuy = 1d - configTrading.getDeltaPercBuy();
-			BigDecimal buyPrice = AltMath.mult(avgPriceLast24, percBuy);
-			logger.debug("ask=%s, avgLast24=%s, buyPrice=%s", OutFormat.toStringNum(askPrice), OutFormat.toStringNum(avgPriceLast24), OutFormat.toStringNum(buyPrice));
-			return askPrice.compareTo(buyPrice) <= 0 ? buyPrice : null;
+			BigDecimal limitPrice = AltMath.mult(avgPriceLast24, percBuy);
+			logger.debug("ask=%s, avgLast24=%s, buyPrice=%s", OutFormat.toStringNum(askPrice), OutFormat.toStringNum(avgPriceLast24), OutFormat.toStringNum(limitPrice));
+			return askPrice.compareTo(limitPrice) <= 0 ? askPrice : null;
 		}
 
 		logger.info("Tickers data too old (older than %d seconds)", configTrading.getDataValidSeconds());
@@ -126,7 +125,7 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 		}
 
 		BigDecimal assetBalance = getAssetBalance();
-		logger.debug("Account balance for %s = %s", tradedAssetPair.getPairName(), OutFormat.toStringNum(assetBalance));
+		logger.debug("Account balance for %s = %s", tradedAssetPair.getQuote(), OutFormat.toStringNum(assetBalance));
 		assetBalance = assetBalance == null ? BigDecimal.ZERO : assetBalance;
 		if(assetBalance == null || assetBalance.compareTo(BigDecimal.ZERO) <= 0) {
 			logger.warning("Unable to emit order: no money in account");
@@ -178,20 +177,36 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 	}
 
 	private AddOrderOut retrieveOrderResponse(AddOrderIn request, Long minOpenTm) {
+		logger.debug("Entered, %d", configTrading.getNumberOfTryToRetrieveOrders());
 		Long maxOpenTm = System.currentTimeMillis();
 		modelTrading.turnOnDownloadOrders();
+		int counter = 0;
+		String apAltName = tradedAssetPair.getAltName();
+		logger.debug("AltName = %s", apAltName);
+
 		while(modelTrading.isDownloadOrdersEnabled()) {
+			logger.debug("Before sleep");
 			Func.sleep(1000L * SECOND_SLEEP_RETRIEVE_ORDER);
+			logger.debug("After sleep");
 			List<OrderInfo> orders = modelTrading.getOrders(minOpenTm, maxOpenTm);
+			logger.debug("Orders got: %d", orders.size());
 			orders.removeIf(o -> o.getDescr().getOrderAction() != request.getOrderAction());
-			orders.removeIf(o -> !o.getDescr().getPairName().equalsIgnoreCase(request.getPairName()));
-			orders.removeIf(o -> o.getDescr().getPrimaryPrice().compareTo(request.getPrice()) != 0);
+			orders.removeIf(o -> !o.getDescr().getPairName().equalsIgnoreCase(apAltName));
+//			orders.removeIf(o -> o.getDescr().getPrimaryPrice().compareTo(request.getPrice()) != 0);
+			orders.removeIf(o -> o.getVol().doubleValue() != request.getVolume());
+			logger.debug("Orders cut: %d", orders.size());
 			if (!orders.isEmpty()) {
 				List<String> txIds = StreamUtil.map(orders, OrderInfo::getOrderTxID);
 				AddOrderOut orderOut = new AddOrderOut();
 				orderOut.setTxIDs(txIds);
 				return orderOut;
 			}
+
+			counter++;
+			if(counter >= configTrading.getNumberOfTryToRetrieveOrders()) {
+				break;
+			}
+			logger.debug("Counter retrieve tx id = %d", counter);
 		}
 		return null;
 	}
