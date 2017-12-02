@@ -133,7 +133,7 @@ class JsonToModel {
 			out.setOrderDescr(getString(jdescr, "order"));
 			out.setCloseDescr(getString(jdescr, "close"));
 		}
-		out.setTxIDs(getArrayString(jdescr, "txid"));
+		out.setTxIDs(getArrayString(result, "txid"));
 		return out;
 	}
 

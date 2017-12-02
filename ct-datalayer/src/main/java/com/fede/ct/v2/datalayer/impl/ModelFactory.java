@@ -33,6 +33,7 @@ public class ModelFactory {
 
 	public static IModelTrading createModelTrading(CryptoContext ctx) {
 		ModelTradingImpl model = new ModelTradingImpl();
+		model.setAssetsDao(new AssetsDbDao(ctx));
 		model.setAssetPairsDao(new AssetPairsDbDao(ctx));
 		model.setPropertiesDao(new PropertiesDbDao(ctx));
 		model.setTickersDao(new TickersDbDao(ctx));

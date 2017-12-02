@@ -113,6 +113,13 @@ public class Ticker {
 	public static class TickerWholePrice extends TickerPrice {
 		private Integer wholeLotVolume;
 
+		public TickerWholePrice() {
+		}
+		public TickerWholePrice(TickerPrice tickerPrice) {
+			super.setPrice(tickerPrice.getPrice());
+			super.setLotVolume(tickerPrice.getLotVolume());
+		}
+
 		public Integer getWholeLotVolume() {
 			return wholeLotVolume;
 		}

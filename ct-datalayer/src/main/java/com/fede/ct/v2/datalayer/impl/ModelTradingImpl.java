@@ -16,11 +16,17 @@ import java.util.List;
  */
 class ModelTradingImpl implements IModelTrading {
 
+	private IAssetsDao assetsDao;
 	private IAssetPairsDao assetPairsDao;
 	private IPropertiesDao propertiesDao;
 	private ITickersDao tickersDao;
 	private IAccountBalanceDao accountBalanceDao;
 	private IOrdersDao ordersDao;
+
+	@Override
+	public Asset getAsset(String assetName) {
+		return assetsDao.selectAsset(assetName);
+	}
 
 
 	@Override
@@ -61,6 +67,9 @@ class ModelTradingImpl implements IModelTrading {
 	}
 
 
+	void setAssetsDao(IAssetsDao assetsDao) {
+		this.assetsDao = assetsDao;
+	}
 	void setAssetPairsDao(IAssetPairsDao assetPairsDao) {
 		this.assetPairsDao = assetPairsDao;
 	}

@@ -16,6 +16,7 @@
         <module>ct-service</module>
         <module>ct-launcher</module>
         <module>ct-login</module>
+        <module>xxxmain</module>
     </modules>
 
     <properties>

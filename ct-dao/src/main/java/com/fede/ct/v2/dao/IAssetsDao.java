@@ -11,6 +11,8 @@ public interface IAssetsDao {
 
 	List<Asset> selectAssets();
 
+	Asset selectAsset(String assetName);
+
 	void insertNewAssets(List<Asset> assets, long callTime);
 
 }

@@ -8,6 +8,7 @@ import com.fede.ct.v2.common.logger.LogService;
 import com.fede.ct.v2.common.logger.SimpleLog;
 import com.fede.ct.v2.common.model._private.AccountBalance;
 import com.fede.ct.v2.common.model._private.OrderInfo;
+import com.fede.ct.v2.common.model._public.Asset;
 import com.fede.ct.v2.common.model._public.AssetPair;
 import com.fede.ct.v2.common.model._public.Ticker;
 import com.fede.ct.v2.common.model._trading.AddOrderIn;
@@ -25,6 +26,7 @@ import com.fede.ct.v2.kraken.impl.KrakenFactory;
 import com.fede.ct.v2.service.ICryptoService;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -44,6 +46,7 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 	private final IKrakenTrading krakenTrading;
 	private final IModelTrading modelTrading;
 
+	private Asset assetQuote = null;
 	private AssetPair tradedAssetPair = null;
 	private OrderInProgress orderInProgress = null;
 
@@ -56,7 +59,7 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 
 	@Override
 	public void startEngine() {
-		logger.debug("Start Kraken public engine");
+		logger.debug("Start Kraken trading engine");
 
 		ScheduledExecutorService executorService = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
 		executorService.scheduleWithFixedDelay(this::doTradingStrategy, DB_POLL_RATE, DB_POLL_RATE, TimeUnit.SECONDS);
@@ -66,10 +69,11 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 	private void doTradingStrategy() {
 
 		if(orderInProgress == null) {
-			BigDecimal buyPrice = computeLimitPrice();
+			BigDecimal buyPrice = computeBuyPrice();
 			logger.info("Buy price = %s", OutFormat.toStringNum(buyPrice));
 			if (buyPrice != null) {
 				modelTrading.turnOnDownloadOrders();
+				logger.config("dio porco");
 				emitBuyOrder(buyPrice);
 			}
 
@@ -96,12 +100,13 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 
 	}
 
-	private BigDecimal computeLimitPrice() {
+	private BigDecimal computeBuyPrice() {
 		Ticker ticker = modelTrading.getTickerAskPriceAndAvgLast24(tradedAssetPair.getPairName());
+		Ticker scaledTicker = ScalingUtils.getScaledTicker(ticker, tradedAssetPair);
 
-		if(canPriceBeComputed(ticker)) {
-			BigDecimal askPrice = ticker.getAsk().getPrice();
-			BigDecimal avgPriceLast24 = ticker.getWeightedAverageVolume().getLast24Hours();
+		if(canPriceBeComputed(scaledTicker)) {
+			BigDecimal askPrice = scaledTicker.getAsk().getPrice();
+			BigDecimal avgPriceLast24 = scaledTicker.getWeightedAverageVolume().getLast24Hours();
 			Double percBuy = 1d - configTrading.getDeltaPercBuy();
 			BigDecimal limitPrice = AltMath.mult(avgPriceLast24, percBuy);
 			logger.debug("ask=%s, avgLast24=%s, buyPrice=%s", OutFormat.toStringNum(askPrice), OutFormat.toStringNum(avgPriceLast24), OutFormat.toStringNum(limitPrice));
@@ -124,11 +129,13 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 			return;
 		}
 
+		logger.config("dio maledetto");
 		BigDecimal assetBalance = getAssetBalance();
-		logger.debug("Account balance for %s = %s", tradedAssetPair.getQuote(), OutFormat.toStringNum(assetBalance));
+		logger.config("dio cane");
 		assetBalance = assetBalance == null ? BigDecimal.ZERO : assetBalance;
+		logger.debug("Account balance for %s = %s", assetQuote.getAssetName(), OutFormat.toStringNum(assetBalance));
 		if(assetBalance == null || assetBalance.compareTo(BigDecimal.ZERO) <= 0) {
-			logger.warning("Unable to emit order: no money in account");
+			logger.warning("Unable to emit order: no money in account for asset %s", assetQuote.getAssetName());
 			return;
 		}
 
@@ -139,18 +146,19 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 		}
 
 		BigDecimal volume = AltMath.divide(notional, buyPrice);
+		volume = volume.setScale(tradedAssetPair.getLotDecimals(), RoundingMode.HALF_EVEN);
 		AddOrderIn orderIn = OrderRequest.createBuyLimitOrderIn(tradedAssetPair.getPairName(), buyPrice, volume);
 		AddOrderOut orderOut;
-		logger.debug("%s", toStringOrderIn(orderIn));
+		logger.debug("Order request buy: %s", toStringOrderIn(orderIn));
 		Long beforeCall = System.currentTimeMillis();
 		try {
 			orderOut = krakenTrading.emitOrder(orderIn);
 			logger.info("Order emitted: tx id = %s", orderOut.getTxIDs());
 		} catch (Exception ex) {
-			logger.info("Emit order raise exception... Try to retrieve order tx if exists...");
+			logger.info("Emit order raise exception... Try to retrieve order tx if exists... [%s]", ex.getMessage());
 			orderOut = retrieveOrderResponse(orderIn, beforeCall);
 			if(orderOut != null) {
-				logger.info("Order emitted (retrieved): tx id = %s", orderOut.getTxIDs());
+				logger.info("Order buy emitted (retrieved): tx id = %s", orderOut.getTxIDs());
 			} else {
 				logger.info("Order buy not emitted on Kraken");
 			}
@@ -162,7 +170,11 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 	}
 
 	private BigDecimal getAssetBalance() {
-		AccountBalance assetBalance = modelTrading.getAssetBalance(tradedAssetPair.getQuote());
+		logger.config("Asset quote is %s", assetQuote.getAssetName());
+		AccountBalance assetBalance = modelTrading.getAssetBalance(assetQuote.getAssetName());
+		logger.debug("Asset balance 1: %s", assetBalance);
+		assetBalance = ScalingUtils.getScaledAccountBalance(assetBalance, assetQuote);
+		logger.debug("Asset balance 2: %s", assetBalance);
 		return assetBalance == null ? BigDecimal.ZERO : assetBalance.getBalance();
 	}
 
@@ -177,36 +189,31 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 	}
 
 	private AddOrderOut retrieveOrderResponse(AddOrderIn request, Long minOpenTm) {
-		logger.debug("Entered, %d", configTrading.getNumberOfTryToRetrieveOrders());
 		Long maxOpenTm = System.currentTimeMillis();
 		modelTrading.turnOnDownloadOrders();
 		int counter = 0;
 		String apAltName = tradedAssetPair.getAltName();
-		logger.debug("AltName = %s", apAltName);
 
 		while(modelTrading.isDownloadOrdersEnabled()) {
-			logger.debug("Before sleep");
+			counter++;
 			Func.sleep(1000L * SECOND_SLEEP_RETRIEVE_ORDER);
-			logger.debug("After sleep");
 			List<OrderInfo> orders = modelTrading.getOrders(minOpenTm, maxOpenTm);
-			logger.debug("Orders got: %d", orders.size());
 			orders.removeIf(o -> o.getDescr().getOrderAction() != request.getOrderAction());
 			orders.removeIf(o -> !o.getDescr().getPairName().equalsIgnoreCase(apAltName));
-//			orders.removeIf(o -> o.getDescr().getPrimaryPrice().compareTo(request.getPrice()) != 0);
 			orders.removeIf(o -> o.getVol().doubleValue() != request.getVolume());
-			logger.debug("Orders cut: %d", orders.size());
+
 			if (!orders.isEmpty()) {
 				List<String> txIds = StreamUtil.map(orders, OrderInfo::getOrderTxID);
 				AddOrderOut orderOut = new AddOrderOut();
 				orderOut.setTxIDs(txIds);
 				return orderOut;
+			} else {
+				logger.debug("Order not yet retrieved... Tentative n. %d", counter);
 			}
 
-			counter++;
 			if(counter >= configTrading.getNumberOfTryToRetrieveOrders()) {
 				break;
 			}
-			logger.debug("Counter retrieve tx id = %d", counter);
 		}
 		return null;
 	}
@@ -224,6 +231,7 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 
 		BigDecimal sellNotional = AltMath.mult(buyNotional, multiplier);
 		BigDecimal sellPrice = AltMath.divide(sellNotional, buyVolume);
+		sellPrice = sellPrice.setScale(tradedAssetPair.getPairDecimals(), RoundingMode.HALF_EVEN);
 
 		return OrderRequest.createSellLimitOrderIn(tradedAssetPair.getPairName(), sellPrice, buyVolume);
 	}
@@ -266,6 +274,7 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 		}
 
 		tradedAssetPair = found;
+		assetQuote = modelTrading.getAsset(tradedAssetPair.getQuote());
 	}
 
 	private static class OrderInProgress {

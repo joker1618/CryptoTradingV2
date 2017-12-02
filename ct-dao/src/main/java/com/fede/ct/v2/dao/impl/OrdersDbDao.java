@@ -25,6 +25,7 @@ public class OrdersDbDao extends AbstractDbDao implements IOrdersDao {
 	private static final String SELECT_ORDERS_BY_OPEN_TM = "SELECT ORDER_TX_ID,REF_ID,USER_REF,STATUS,REASON,OPENTM,CLOSETM,STARTTM,EXPIRETM,VOL,VOL_EXEC,COST,FEE,AVG_PRICE,STOP_PRICE,LIMIT_PRICE,MISC,OFLAGS,TRADES_ID,DESCR_PAIR_NAME,DESCR_ORDER_ACTION,DESCR_ORDER_TYPE,DESCR_PRICE,DESCR_PRICE2,DESCR_LEVERAGE,DESCR_ORDER_DESCR,DESCR_CLOSE_DESCR FROM ORDERS WHERE USER_ID = ? AND OPENTM >= ? AND OPENTM <= ?";
 	private static final String SELECT_ORDERS_STATUS = "SELECT ORDER_TX_ID, STATUS FROM ORDERS WHERE USER_ID = ? AND ORDER_TX_ID IN ";
 
+	
 	public OrdersDbDao(CryptoContext ctx) {
 		super(ctx);
 	}
@@ -40,7 +41,7 @@ public class OrdersDbDao extends AbstractDbDao implements IOrdersDao {
 	public List<OrderInfo> getOrdersStatus(List<String> txIds) {
 		List<Object> values = new ArrayList<>(txIds);
 		values.add(0, getUserCtx().getUserId());
-		List<Query> queries = super.createJdbcQueries(SELECT_ORDERS_STATUS, 1, txIds.size(), values, o -> o);
+		List<Query> queries = super.createJdbcQueries(SELECT_ORDERS_STATUS, 3, txIds.size(), values, o -> o);
 		List<OrderInfo> toRet = new ArrayList<>();
 		for(Query query : queries) {
 			List<InquiryResult> res = super.performInquiry(query);
@@ -52,7 +53,6 @@ public class OrdersDbDao extends AbstractDbDao implements IOrdersDao {
 	@Override
 	public List<OrderInfo> getOrdersByOpenTm(Long minOpenTm, Long maxOpenTm) {
 		Query query = new Query(SELECT_ORDERS_BY_OPEN_TM, getUserCtx().getUserId(), minOpenTm, maxOpenTm);
-		logger.debug("Query: %s", query);
 		List<InquiryResult> results = super.performInquiry(query);
 		return StreamUtil.map(results, this::parseOrderInfo);
 	}

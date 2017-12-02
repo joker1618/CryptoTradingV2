@@ -15,6 +15,7 @@ import java.util.function.Function;
 public class AssetsDbDao extends AbstractDbDao implements IAssetsDao {
 
 	private static final String SELECT_VALID_ASSETS = "SELECT ASSET_NAME, A_CLASS, ALT_NAME, DECIMALS, DISPLAY_DECIMALS FROM ASSETS WHERE EXPIRE_TIME = 0 ORDER BY ASSET_NAME";
+	private static final String SELECT_VALID_ASSET = "SELECT ASSET_NAME, A_CLASS, ALT_NAME, DECIMALS, DISPLAY_DECIMALS FROM ASSETS WHERE EXPIRE_TIME = 0 AND ASSET_NAME = ? ORDER BY ASSET_NAME";
 	private static final String UPDATE_EXPIRE_TIME = "UPDATE ASSETS SET EXPIRE_TIME = ? WHERE EXPIRE_TIME = 0";
 	private static final String INSERT_NEW_PREFIX = "INSERT INTO ASSETS (ASSET_NAME, A_CLASS, ALT_NAME, DECIMALS, DISPLAY_DECIMALS, START_TIME, EXPIRE_TIME) VALUES ";
 
@@ -27,6 +28,16 @@ public class AssetsDbDao extends AbstractDbDao implements IAssetsDao {
 	public List<Asset> selectAssets() {
 		List<InquiryResult> results = super.performInquiry(new Query(SELECT_VALID_ASSETS));
 		return StreamUtil.map(results, this::parseAsset);
+	}
+
+	@Override
+	public Asset selectAsset(String assetName) {
+		Query query = new Query(SELECT_VALID_ASSET, assetName);
+		List<InquiryResult> inquiryResults = super.performInquiry(query);
+		if(inquiryResults.isEmpty()) {
+			return null;
+		}
+		return parseAsset(inquiryResults.get(0));
 	}
 
 	@Override

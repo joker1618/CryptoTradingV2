@@ -30,7 +30,7 @@ public class OutFormat {
 
 	public static String toStringNum(BigDecimal num) {
 		if(num == null)	return "NULL";
-		return getEnglishFormat().format(num);
+		return String.valueOf(num);
 	}
 	public static String toStringNum(Double num) {
 		if(num == null)	return "NULL";

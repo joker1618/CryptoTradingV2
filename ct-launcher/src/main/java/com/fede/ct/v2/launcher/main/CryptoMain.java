@@ -61,7 +61,7 @@ public final class CryptoMain {
 			logger.config("SETTINGS:\n%s", settings);
 
 			parseInputAndManage(args);
-			
+
 		} catch(Exception ex) {
 			logger.error("Error found: %s", ex.getMessage());
 		}
@@ -123,15 +123,14 @@ public final class CryptoMain {
 		service.startEngine();
 	}
 	private static void managePrivate(String[] args) {
-		if((args.length != 2 && args.length != 3) || !CheckUtils.isInteger(args[1])) {
+		if(args.length != 3 || !CheckUtils.isInteger(args[1])) {
 			showUsageAndExit();
 		}
-		if(args.length == 3 && !Files.exists(Paths.get(args[2]))) {
+		if(!Files.exists(Paths.get(args[2]))) {
 			exit("File %s does not exists", args[2]);
 		}
 
-		String configPath = args.length == 2 ? Const.CONFIG_PRIVATE_PATH : args[2];
-		ConfigService.getConfigPrivate().loadConfigFromFile(configPath);
+		ConfigService.getConfigPrivate().loadConfigFromFile(Const.CONFIG_PRIVATE_PATH);
 
 		CryptoContext ctx = LoginService.createContext(PRIVATE, Converter.stringToInteger(args[1]));
 		ICryptoService service = new ServicePrivate(ctx);
