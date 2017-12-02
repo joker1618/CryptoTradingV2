@@ -30,7 +30,7 @@ public enum OrderAction {
 
 	public static OrderAction getByLabel(String toFind) {
 		return Arrays.stream(values())
-				   .filter(at -> at.labels.contains(toFind.trim()))
+				   .filter(at -> at.labels.contains(toFind))
 				   .findAny()
 				   .orElse(null);
 	}

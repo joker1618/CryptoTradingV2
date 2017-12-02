@@ -23,7 +23,7 @@ public class OrdersDbDao extends AbstractDbDao implements IOrdersDao {
 
 	private static final String REPLACE_ORDERS_PREFIX = "REPLACE INTO ORDERS (ORDER_TX_ID,USER_ID,REF_ID,USER_REF,STATUS,REASON,OPENTM,CLOSETM,STARTTM,EXPIRETM,VOL,VOL_EXEC,COST,FEE,AVG_PRICE,STOP_PRICE,LIMIT_PRICE,MISC,OFLAGS,TRADES_ID,DESCR_PAIR_NAME,DESCR_ORDER_ACTION,DESCR_ORDER_TYPE,DESCR_PRICE,DESCR_PRICE2,DESCR_LEVERAGE,DESCR_ORDER_DESCR,DESCR_CLOSE_DESCR) VALUES ";
 	private static final String SELECT_ORDERS_BY_OPEN_TM = "SELECT ORDER_TX_ID,REF_ID,USER_REF,STATUS,REASON,OPENTM,CLOSETM,STARTTM,EXPIRETM,VOL,VOL_EXEC,COST,FEE,AVG_PRICE,STOP_PRICE,LIMIT_PRICE,MISC,OFLAGS,TRADES_ID,DESCR_PAIR_NAME,DESCR_ORDER_ACTION,DESCR_ORDER_TYPE,DESCR_PRICE,DESCR_PRICE2,DESCR_LEVERAGE,DESCR_ORDER_DESCR,DESCR_CLOSE_DESCR FROM ORDERS WHERE USER_ID = ? AND OPENTM >= ? AND OPENTM <= ?";
-	private static final String SELECT_ORDERS_STATUS = "SELECT ORDER_TX_ID, STATUS FROM ORDERS WHERE USER_ID = ? AND ORDER_TX_ID IN ";
+	private static final String SELECT_ORDERS_STATUS = "SELECT ORDER_TX_ID, STATUS FROM ORDERS WHERE USER_ID = %d AND ORDER_TX_ID IN ";
 
 	
 	public OrdersDbDao(CryptoContext ctx) {
@@ -39,9 +39,8 @@ public class OrdersDbDao extends AbstractDbDao implements IOrdersDao {
 
 	@Override
 	public List<OrderInfo> getOrdersStatus(List<String> txIds) {
-		List<Object> values = new ArrayList<>(txIds);
-		values.add(0, getUserCtx().getUserId());
-		List<Query> queries = super.createJdbcQueries(SELECT_ORDERS_STATUS, 3, txIds.size(), values, o -> o);
+		String queryPrefix = String.format(SELECT_ORDERS_STATUS, getUserCtx().getUserId());
+		List<Query> queries = super.createJdbcQueries(queryPrefix, 1, txIds.size(), txIds, o -> o);
 		List<OrderInfo> toRet = new ArrayList<>();
 		for(Query query : queries) {
 			List<InquiryResult> res = super.performInquiry(query);

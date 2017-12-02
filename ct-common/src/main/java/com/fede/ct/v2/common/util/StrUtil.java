@@ -18,7 +18,7 @@ public class StrUtil {
 		return splitAllFields(source, separatorString, false, true);
 	}
 	public static String[] splitAllFields(String source, String separatorString, boolean trimValues, boolean removeSeparator) {
-		if(source.isEmpty()) {
+		if(source == null || source.isEmpty()) {
 			return new String[0];
 		}
 

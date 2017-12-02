@@ -100,6 +100,7 @@ abstract class AbstractDbDao {
 	 * JDBC allow a maximum of 232 marks ('?') in each query.
 	 * This method uses 200 as a limit of marks.
 	 */
+	@Deprecated
 	protected <T> List<Query> createJdbcQueries(String prefix, int totElem, int numElemMarks, List<T> values, List<Function<T,Object>> functions) {
 
 		int totMarks = totElem * numElemMarks;
@@ -131,6 +132,7 @@ abstract class AbstractDbDao {
 
 		return queries;
 	}
+	@Deprecated
 	protected <T> List<Query> createJdbcQueries(String prefix, int totElems, int numElemFields, List<T> values, Function<T,Object>... functions) {
 		return createJdbcQueries(prefix, totElems, numElemFields, values, Arrays.asList(functions));
 	}
