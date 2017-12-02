@@ -11,9 +11,9 @@ import static java.time.temporal.ChronoUnit.*;
 /**
  * Created by f.barbano on 05/11/2017.
  */
-public class OutFormat {
+public class OutFmt {
 
-	public static NumberFormat getEnglishFormat() {
+	private static NumberFormat getEnglishFormat() {
 		NumberFormat nf = NumberFormat.getNumberInstance(Locale.ENGLISH);
 		nf.setMinimumFractionDigits(1);
 		nf.setMaximumFractionDigits(12);
@@ -21,27 +21,27 @@ public class OutFormat {
 		return nf;
 	}
 
-	public static String toStringLDT(long millis, String pattern) {
-		return toStringLDT(Converter.millisToLocalDateTime(millis), pattern);
+	public static String printDateTime(long millis, String pattern) {
+		return printDateTime(Converter.millisToLocalDateTime(millis), pattern);
 	}
-	public static String toStringLDT(LocalDateTime ldt, String pattern) {
+	public static String printDateTime(LocalDateTime ldt, String pattern) {
 		return DateTimeFormatter.ofPattern(pattern).format(ldt);
 	}
 
-	public static String toStringNum(BigDecimal num) {
+	public static String printNum(BigDecimal num) {
 		if(num == null)	return "NULL";
 		return String.valueOf(num);
 	}
-	public static String toStringNum(Double num) {
+	public static String printNum(Double num) {
 		if(num == null)	return "NULL";
 		return getEnglishFormat().format(num);
 	}
 
 
-	public static String toStringElapsed(long start, long end, boolean showMilli) {
-		return toStringElapsed(end-start, showMilli);
+	public static String printElapsed(long start, long end, boolean showMilli) {
+		return printElapsed(end-start, showMilli);
 	}
-	public static String toStringElapsed(long elapsed, boolean showMilli) {
+	public static String printElapsed(long elapsed, boolean showMilli) {
 		WTime td = new WTime(elapsed);
 
 		String strMilli = showMilli ? String.format(".%03d", td.getMilli()) : "";

@@ -5,7 +5,7 @@ import com.fede.ct.v2.common.model._public.Ticker;
 import com.fede.ct.v2.common.model._public.Ticker.TickerPrice;
 import com.fede.ct.v2.common.model._public.Ticker.TickerVolume;
 import com.fede.ct.v2.common.model._public.Ticker.TickerWholePrice;
-import com.fede.ct.v2.common.util.OutFormat;
+import com.fede.ct.v2.common.util.OutFmt;
 import com.fede.ct.v2.dao.ITickersDao;
 
 import java.util.ArrayList;
@@ -67,7 +67,7 @@ public class TickersDbDao extends AbstractDbDao implements ITickersDao {
 		functions.add(t -> t.getHigh().getToday());
 		functions.add(t -> t.getHigh().getLast24Hours());
 		functions.add(t -> t.getOpeningPrice());
-		functions.add(t -> OutFormat.toStringLDT(callTime, "yyyyMMddHHmmss"));
+		functions.add(t -> OutFmt.printDateTime(callTime, "yyyyMMddHHmmss"));
 		functions.add(t -> 1);
 		return functions;
 	}

@@ -5,7 +5,7 @@ import com.fede.ct.v2.common.context.UserCtx;
 import com.fede.ct.v2.common.exception.TechnicalException;
 import com.fede.ct.v2.common.logger.LogService;
 import com.fede.ct.v2.common.logger.SimpleLog;
-import com.fede.ct.v2.common.util.OutFormat;
+import com.fede.ct.v2.common.util.OutFmt;
 import com.fede.ct.v2.common.util.StreamUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -85,7 +85,7 @@ abstract class AbstractDbDao {
 				ctx.getDbConn().commit();
 				ctx.getDbConn().setAutoCommit(true);
 				long endTime = System.currentTimeMillis();
-				logger.debug("End batch, elapsed=%s\t%s", OutFormat.toStringElapsed(startTime, endTime, true), queries);
+				logger.debug("End batch, elapsed=%s\t%s", OutFmt.printElapsed(startTime, endTime, true), queries);
 			}
 		} catch (SQLException e) {
 			throw new TechnicalException(e, "Error performing transaction %s", queries);
@@ -140,7 +140,7 @@ abstract class AbstractDbDao {
 		long startTime = System.currentTimeMillis();
 		try(PreparedStatement ps = createPreparedStatement(query)) {
 			int num = ps.executeUpdate();
-			logger.config("Executed update in %s, %d rows altered %s", OutFormat.toStringElapsed(startTime, System.currentTimeMillis(), true), num, query);
+			logger.config("Executed update in %s, %d rows altered %s", OutFmt.printElapsed(startTime, System.currentTimeMillis(), true), num, query);
 			return num;
 		} catch (SQLException e) {
 			throw new TechnicalException(e, "Error performing update %s", query);

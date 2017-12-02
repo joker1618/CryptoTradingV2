@@ -2,7 +2,7 @@ package com.fede.ct.v2.kraken.impl;
 
 import com.fede.ct.v2.common.logger.LogService;
 import com.fede.ct.v2.common.logger.SimpleLog;
-import com.fede.ct.v2.common.util.OutFormat;
+import com.fede.ct.v2.common.util.OutFmt;
 import com.fede.ct.v2.kraken.exception.KrakenCallError;
 import com.fede.ct.v2.kraken.exception.KrakenException;
 import com.fede.ct.v2.kraken.impl.api.KrakenApi;
@@ -50,7 +50,7 @@ abstract class AbstractKrakenCaller {
 			logger.debug("Method: %s; params: %s", method, apiParamMap);
 			String json = method.isPublic() ? krakenApi.queryPublic(method, apiParamMap) : krakenApi.queryPrivate(method, apiParamMap);
 			long endTime = System.currentTimeMillis();
-			logger.debug("Kraken call (%s): elapsed %s", method.getName(), OutFormat.toStringElapsed(startTime, endTime, true));
+			logger.debug("Kraken call (%s): elapsed %s", method.getName(), OutFmt.printElapsed(startTime, endTime, true));
 			logger.fine("Kraken call (%s): json received --> %s", method.getName(), json);
 
 			JsonToModel jm = new JsonToModel(json);

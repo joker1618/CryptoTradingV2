@@ -17,7 +17,7 @@ import com.fede.ct.v2.common.model._trading.OrderRequest;
 import com.fede.ct.v2.common.model.types.OrderAction;
 import com.fede.ct.v2.common.util.AltMath;
 import com.fede.ct.v2.common.util.Func;
-import com.fede.ct.v2.common.util.OutFormat;
+import com.fede.ct.v2.common.util.OutFmt;
 import com.fede.ct.v2.common.util.StreamUtil;
 import com.fede.ct.v2.datalayer.IModelTrading;
 import com.fede.ct.v2.datalayer.impl.ModelFactory;
@@ -70,7 +70,7 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 
 		if(orderInProgress == null) {
 			BigDecimal buyPrice = computeBuyPrice();
-			logger.info("Buy price = %s", OutFormat.toStringNum(buyPrice));
+			logger.info("Buy price = %s", OutFmt.printNum(buyPrice));
 			if (buyPrice != null) {
 				modelTrading.turnOnDownloadOrders();
 				logger.config("dio porco");
@@ -109,7 +109,7 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 			BigDecimal avgPriceLast24 = scaledTicker.getWeightedAverageVolume().getLast24Hours();
 			Double percBuy = 1d - configTrading.getDeltaPercBuy();
 			BigDecimal limitPrice = AltMath.mult(avgPriceLast24, percBuy);
-			logger.debug("ask=%s, avgLast24=%s, buyPrice=%s", OutFormat.toStringNum(askPrice), OutFormat.toStringNum(avgPriceLast24), OutFormat.toStringNum(limitPrice));
+			logger.debug("ask=%s, avgLast24=%s, buyPrice=%s", OutFmt.printNum(askPrice), OutFmt.printNum(avgPriceLast24), OutFmt.printNum(limitPrice));
 			return askPrice.compareTo(limitPrice) <= 0 ? askPrice : null;
 		}
 
@@ -133,7 +133,7 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 		BigDecimal assetBalance = getAssetBalance();
 		logger.config("dio cane");
 		assetBalance = assetBalance == null ? BigDecimal.ZERO : assetBalance;
-		logger.debug("Account balance for %s = %s", assetQuote.getAssetName(), OutFormat.toStringNum(assetBalance));
+		logger.debug("Account balance for %s = %s", assetQuote.getAssetName(), OutFmt.printNum(assetBalance));
 		if(assetBalance == null || assetBalance.compareTo(BigDecimal.ZERO) <= 0) {
 			logger.warning("Unable to emit order: no money in account for asset %s", assetQuote.getAssetName());
 			return;
@@ -141,7 +141,7 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 
 		BigDecimal notional = configTrading.getNotional();
 		if(assetBalance.compareTo(notional) < 0) {
-			logger.info("Notional reduced from %s to %s: not enough money in account", OutFormat.toStringNum(buyPrice), OutFormat.toStringNum(assetBalance));
+			logger.info("Notional reduced from %s to %s: not enough money in account", OutFmt.printNum(buyPrice), OutFmt.printNum(assetBalance));
 			notional = assetBalance;
 		}
 
@@ -183,8 +183,8 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 			orderIn.getOrderAction().label(),
 			orderIn.getOrderType().label(),
 			orderIn.getPairName(),
-			OutFormat.toStringNum(orderIn.getPrice()),
-			OutFormat.toStringNum(orderIn.getVolume())
+			OutFmt.printNum(orderIn.getPrice()),
+			OutFmt.printNum(orderIn.getVolume())
 		);
 	}
 
