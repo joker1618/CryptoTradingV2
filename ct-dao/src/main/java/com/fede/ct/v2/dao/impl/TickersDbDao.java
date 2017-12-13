@@ -6,6 +6,7 @@ import com.fede.ct.v2.common.model._public.Ticker.TickerPrice;
 import com.fede.ct.v2.common.model._public.Ticker.TickerVolume;
 import com.fede.ct.v2.common.model._public.Ticker.TickerWholePrice;
 import com.fede.ct.v2.common.util.OutFmt;
+import com.fede.ct.v2.common.util.StreamUtil;
 import com.fede.ct.v2.dao.ITickersDao;
 
 import java.util.ArrayList;
@@ -18,10 +19,10 @@ import java.util.function.Function;
 public class TickersDbDao extends AbstractDbDao implements ITickersDao {
 
 	private static final String UPDATE_VALIDS = "UPDATE TICKERS SET VALID = 0 WHERE VALID = 1";
-	private static final String INSERT_NEW_PREFIX = "INSERT INTO TICKERS (CALL_TIME, PAIR_NAME, ASK_PRICE, ASK_WHOLE_LOT_VOLUME, ASK_LOT_VOLUME, BID_PRICE, " +
+	private static final String INSERT_NEW = "INSERT INTO TICKERS (CALL_TIME, PAIR_NAME, ASK_PRICE, ASK_WHOLE_LOT_VOLUME, ASK_LOT_VOLUME, BID_PRICE, " +
 												   "BID_WHOLE_LOT_VOLUME, BID_LOT_VOLUME, LAST_CLOSED_PRICE, LAST_CLOSED_LOT_VOLUME, VOLUME_TODAY, VOLUME_LAST_24, " +
 												   "VOLUME_WEIGHTED_AVERAGE_TODAY, VOLUME_WEIGHTED_AVERAGE_LAST_24, NUMBER_TRADES_TODAY, NUMBER_TRADES_LAST_24, LOW_TODAY, " +
-												   "LOW_LAST_24, HIGH_TODAY, HIGH_LAST_24, OPENING_PRICE, GRAFANA_TIME, VALID) VALUES ";
+												   "LOW_LAST_24, HIGH_TODAY, HIGH_LAST_24, OPENING_PRICE, GRAFANA_TIME, VALID) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
 	private static final String SELECT_ASK_PRICE_AVERAGE_LAST24 = "SELECT PAIR_NAME, CALL_TIME, ASK_PRICE, VOLUME_WEIGHTED_AVERAGE_LAST_24 FROM TICKERS WHERE PAIR_NAME = ? AND VALID = 1";
 
@@ -31,9 +32,9 @@ public class TickersDbDao extends AbstractDbDao implements ITickersDao {
 
 	@Override
 	public void insertTickers(List<Ticker> tickers, long callTime) {
-		Query updateQuery = new Query(UPDATE_VALIDS);
-		List<Query> queries = createJdbcQueries(INSERT_NEW_PREFIX, tickers.size(), 23, tickers, getTickerFunctions(callTime));
-		queries.add(0, updateQuery);
+		List<Query> queries = new ArrayList<>();
+		queries.add(new Query(UPDATE_VALIDS));
+		queries.addAll(StreamUtil.map(tickers, t -> createQueryIns(t, callTime)));
 		super.performTransaction(queries);
 	}
 
@@ -44,32 +45,32 @@ public class TickersDbDao extends AbstractDbDao implements ITickersDao {
 		return results.isEmpty() ? null : parseTicker(results.get(0));
 	}
 
-	private List<Function<Ticker, Object>> getTickerFunctions(Long callTime) {
-		List<Function<Ticker, Object>> functions = new ArrayList<>();
-		functions.add(t -> callTime);
-		functions.add(t -> t.getPairName());
-		functions.add(t -> t.getAsk().getPrice());
-		functions.add(t -> t.getAsk().getWholeLotVolume());
-		functions.add(t -> t.getAsk().getLotVolume());
-		functions.add(t -> t.getBid().getPrice());
-		functions.add(t -> t.getBid().getWholeLotVolume());
-		functions.add(t -> t.getBid().getLotVolume());
-		functions.add(t -> t.getLastTradeClosed().getPrice());
-		functions.add(t -> t.getLastTradeClosed().getLotVolume());
-		functions.add(t -> t.getVolume().getToday());
-		functions.add(t -> t.getVolume().getLast24Hours());
-		functions.add(t -> t.getWeightedAverageVolume().getToday());
-		functions.add(t -> t.getWeightedAverageVolume().getLast24Hours());
-		functions.add(t -> t.getTradesNumber().getToday());
-		functions.add(t -> t.getTradesNumber().getLast24Hours());
-		functions.add(t -> t.getLow().getToday());
-		functions.add(t -> t.getLow().getLast24Hours());
-		functions.add(t -> t.getHigh().getToday());
-		functions.add(t -> t.getHigh().getLast24Hours());
-		functions.add(t -> t.getOpeningPrice());
-		functions.add(t -> OutFmt.printDateTime(callTime, "yyyyMMddHHmmss"));
-		functions.add(t -> 1);
-		return functions;
+	private Query createQueryIns(Ticker ticker, Long callTime) {
+		Query query = new Query(INSERT_NEW);
+		query.addParams(callTime);
+		query.addParams(ticker.getPairName());
+		query.addParams(ticker.getAsk().getPrice());
+		query.addParams(ticker.getAsk().getWholeLotVolume());
+		query.addParams(ticker.getAsk().getLotVolume());
+		query.addParams(ticker.getBid().getPrice());
+		query.addParams(ticker.getBid().getWholeLotVolume());
+		query.addParams(ticker.getBid().getLotVolume());
+		query.addParams(ticker.getLastTradeClosed().getPrice());
+		query.addParams(ticker.getLastTradeClosed().getLotVolume());
+		query.addParams(ticker.getVolume().getToday());
+		query.addParams(ticker.getVolume().getLast24Hours());
+		query.addParams(ticker.getWeightedAverageVolume().getToday());
+		query.addParams(ticker.getWeightedAverageVolume().getLast24Hours());
+		query.addParams(ticker.getTradesNumber().getToday());
+		query.addParams(ticker.getTradesNumber().getLast24Hours());
+		query.addParams(ticker.getLow().getToday());
+		query.addParams(ticker.getLow().getLast24Hours());
+		query.addParams(ticker.getHigh().getToday());
+		query.addParams(ticker.getHigh().getLast24Hours());
+		query.addParams(ticker.getOpeningPrice());
+		query.addParams(OutFmt.printDateTime(callTime, "yyyyMMddHHmmss"));
+		query.addParams(1);
+		return query;
 	}
 
 	private Ticker parseTicker(InquiryResult res) {

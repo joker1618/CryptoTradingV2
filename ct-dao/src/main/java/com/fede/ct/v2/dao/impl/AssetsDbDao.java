@@ -17,7 +17,7 @@ public class AssetsDbDao extends AbstractDbDao implements IAssetsDao {
 	private static final String SELECT_VALID_ASSETS = "SELECT ASSET_NAME, A_CLASS, ALT_NAME, DECIMALS, DISPLAY_DECIMALS FROM ASSETS WHERE EXPIRE_TIME = 0 ORDER BY ASSET_NAME";
 	private static final String SELECT_VALID_ASSET = "SELECT ASSET_NAME, A_CLASS, ALT_NAME, DECIMALS, DISPLAY_DECIMALS FROM ASSETS WHERE EXPIRE_TIME = 0 AND ASSET_NAME = ? ORDER BY ASSET_NAME";
 	private static final String UPDATE_EXPIRE_TIME = "UPDATE ASSETS SET EXPIRE_TIME = ? WHERE EXPIRE_TIME = 0";
-	private static final String INSERT_NEW_PREFIX = "INSERT INTO ASSETS (ASSET_NAME, A_CLASS, ALT_NAME, DECIMALS, DISPLAY_DECIMALS, START_TIME, EXPIRE_TIME) VALUES ";
+	private static final String INSERT_NEW = "INSERT INTO ASSETS (ASSET_NAME, A_CLASS, ALT_NAME, DECIMALS, DISPLAY_DECIMALS, START_TIME, EXPIRE_TIME) VALUES (?,?,?,?,?,?,?)";
 
 
 	public AssetsDbDao(CryptoContext ctx) {
@@ -33,31 +33,28 @@ public class AssetsDbDao extends AbstractDbDao implements IAssetsDao {
 	@Override
 	public Asset selectAsset(String assetName) {
 		Query query = new Query(SELECT_VALID_ASSET, assetName);
-		List<InquiryResult> inquiryResults = super.performInquiry(query);
-		if(inquiryResults.isEmpty()) {
-			return null;
-		}
-		return parseAsset(inquiryResults.get(0));
+		List<InquiryResult> results = super.performInquiry(query);
+		return results.isEmpty() ? null : parseAsset(results.get(0));
 	}
 
 	@Override
 	public void insertNewAssets(List<Asset> assets, long callTime) {
 		List<Query> queries = new ArrayList<>();
 		queries.add(new Query(UPDATE_EXPIRE_TIME, callTime));
-		queries.addAll(createQueryInsertNew(assets, callTime));
+		assets.forEach(a -> queries.add(createQueryIns(a, callTime)));
 		super.performTransaction(queries);
 	}
 
-	private List<Query> createQueryInsertNew(List<Asset> assets, long callTime) {
-		List<Function<Asset, Object>> functions = new ArrayList<>();
-		functions.add(Asset::getAssetName);
-		functions.add(Asset::getAClass);
-		functions.add(Asset::getAltName);
-		functions.add(Asset::getDecimals);
-		functions.add(Asset::getDisplayDecimals);
-		functions.add(asset -> callTime);
-		functions.add(asset -> 0L);
-		return super.createJdbcQueries(INSERT_NEW_PREFIX, assets.size(), 7, assets, functions);
+	private Query createQueryIns(Asset asset,  long callTime) {
+		Query query = new Query(INSERT_NEW);
+		query.addParams(asset.getAssetName());
+		query.addParams(asset.getAClass());
+		query.addParams(asset.getAltName());
+		query.addParams(asset.getDecimals());
+		query.addParams(asset.getDisplayDecimals());
+		query.addParams(callTime);
+		query.addParams(0L);
+		return query;
 	}
 
 	private Asset parseAsset(InquiryResult res) {

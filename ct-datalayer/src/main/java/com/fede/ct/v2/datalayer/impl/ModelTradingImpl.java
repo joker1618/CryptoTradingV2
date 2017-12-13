@@ -66,6 +66,11 @@ class ModelTradingImpl implements IModelTrading {
 		return ordersDao.getOrdersByOpenTm(minOpenTm, maxOpenTm);
 	}
 
+	@Override
+	public List<OrderInfo> getOpenOrders() {
+		return ordersDao.getOpenOrders();
+	}
+
 
 	void setAssetsDao(IAssetsDao assetsDao) {
 		this.assetsDao = assetsDao;

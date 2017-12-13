@@ -15,5 +15,6 @@ public interface IOrdersDao {
 
 	List<OrderInfo> getOrdersByOpenTm(Long minOpenTm, Long maxOpenTm);
 
+	List<OrderInfo> getOpenOrders();
 
 }

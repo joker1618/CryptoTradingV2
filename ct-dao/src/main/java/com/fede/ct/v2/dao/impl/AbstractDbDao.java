@@ -96,46 +96,44 @@ abstract class AbstractDbDao {
 		return ctx == null ? null : ctx.getUserCtx();
 	}
 
-	/**
-	 * JDBC allow a maximum of 232 marks ('?') in each query.
-	 * This method uses 200 as a limit of marks.
-	 */
-	@Deprecated
-	protected <T> List<Query> createJdbcQueries(String prefix, int totElem, int numElemMarks, List<T> values, List<Function<T,Object>> functions) {
-
-		int totMarks = totElem * numElemMarks;
-		if(totMarks == 0) {
-			return new ArrayList<>();
-		}
-		
-		StringBuilder sbFields = new StringBuilder();
-		sbFields.append("(?");
-		if(numElemMarks > 1)	sbFields.append(StringUtils.repeat(",?", numElemMarks-1));
-		sbFields.append(")");
-		String marksValueString = sbFields.toString();
-
-		int subElemSize = MAX_MARKS_NUMBER / numElemMarks;
-
-		int valuesIndex = 0;
-		List<Query> queries = new ArrayList<>();
-		for(int i = 0; i < totElem; i += subElemSize) {
-			int effElems = Math.min(subElemSize, totElem - i);
-			int effMarks = effElems * numElemMarks;
-			String strValues = marksValueString + StringUtils.repeat("," + marksValueString, effElems - 1);
-			Query query = new Query(String.format("%s %s", prefix, strValues));
-			for(int j = 0; j < effMarks; j += functions.size(), valuesIndex++) {
-				T value = values.get(valuesIndex);
-				functions.forEach(f -> query.addParams(f.apply(value)));
-			}
-			queries.add(query);
-		}
-
-		return queries;
-	}
-	@Deprecated
-	protected <T> List<Query> createJdbcQueries(String prefix, int totElems, int numElemFields, List<T> values, Function<T,Object>... functions) {
-		return createJdbcQueries(prefix, totElems, numElemFields, values, Arrays.asList(functions));
-	}
+//	/**
+//	 * JDBC allow a maximum of 232 marks ('?') in each query.
+//	 * This method uses 200 as a limit of marks.
+//	 */
+//	protected <T> List<Query> createJdbcQueries(String prefix, int totElem, int numElemMarks, List<T> values, List<Function<T,Object>> functions) {
+//
+//		int totMarks = totElem * numElemMarks;
+//		if(totMarks == 0) {
+//			return new ArrayList<>();
+//		}
+//
+//		StringBuilder sbFields = new StringBuilder();
+//		sbFields.append("(?");
+//		if(numElemMarks > 1)	sbFields.append(StringUtils.repeat(",?", numElemMarks-1));
+//		sbFields.append(")");
+//		String marksValueString = sbFields.toString();
+//
+//		int subElemSize = MAX_MARKS_NUMBER / numElemMarks;
+//
+//		int valuesIndex = 0;
+//		List<Query> queries = new ArrayList<>();
+//		for(int i = 0; i < totElem; i += subElemSize) {
+//			int effElems = Math.min(subElemSize, totElem - i);
+//			int effMarks = effElems * numElemMarks;
+//			String strValues = marksValueString + StringUtils.repeat("," + marksValueString, effElems - 1);
+//			Query query = new Query(String.format("%s %s", prefix, strValues));
+//			for(int j = 0; j < effMarks; j += functions.size(), valuesIndex++) {
+//				T value = values.get(valuesIndex);
+//				functions.forEach(f -> query.addParams(f.apply(value)));
+//			}
+//			queries.add(query);
+//		}
+//
+//		return queries;
+//	}
+//	protected <T> List<Query> createJdbcQueries(String prefix, int totElems, int numElemFields, List<T> values, Function<T,Object>... functions) {
+//		return createJdbcQueries(prefix, totElems, numElemFields, values, Arrays.asList(functions));
+//	}
 
 
 	private int doUpdate(Query query) {
@@ -153,8 +151,8 @@ abstract class AbstractDbDao {
 		PreparedStatement ps = ctx.getDbConn().prepareStatement(query.query);
 		int idx = 1;
 		for (Object param : query.getParamArray()) {
-			if (param instanceof Long) ps.setLong(idx, (Long) param);
-			else if (param instanceof Integer) 	ps.setInt(idx, (Integer) param);
+			if (param instanceof Integer) 	ps.setInt(idx, (Integer) param);
+			else if (param instanceof Long) ps.setLong(idx, (Long) param);
 			else if (param instanceof Double) 	ps.setDouble(idx, (Double) param);
 			else if (param instanceof BigDecimal) ps.setBigDecimal(idx, (BigDecimal) param);
 			else ps.setString(idx, (String) param);

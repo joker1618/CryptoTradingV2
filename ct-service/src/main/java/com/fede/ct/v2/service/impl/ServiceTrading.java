@@ -24,6 +24,7 @@ import com.fede.ct.v2.datalayer.impl.ModelFactory;
 import com.fede.ct.v2.kraken.IKrakenTrading;
 import com.fede.ct.v2.kraken.impl.KrakenFactory;
 import com.fede.ct.v2.service.ICryptoService;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -193,17 +194,23 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 		modelTrading.turnOnDownloadOrders();
 		int counter = 0;
 		String apAltName = tradedAssetPair.getAltName();
+		String apName = tradedAssetPair.getPairName();
 
 		while(modelTrading.isDownloadOrdersEnabled()) {
 			counter++;
 			Func.sleep(1000L * SECOND_SLEEP_RETRIEVE_ORDER);
-			List<OrderInfo> orders = modelTrading.getOrders(minOpenTm, maxOpenTm);
-			orders.removeIf(o -> o.getDescr().getOrderAction() != request.getOrderAction());
-			orders.removeIf(o -> !o.getDescr().getPairName().equalsIgnoreCase(apAltName));
-			orders.removeIf(o -> o.getVol().doubleValue() != request.getVolume());
+//			List<OrderInfo> orders = modelTrading.getOrders(minOpenTm, maxOpenTm);
+//			orders.removeIf(o -> o.getDescr().getOrderAction() != request.getOrderAction());
+//			orders.removeIf(o -> !o.getDescr().getPairName().equalsIgnoreCase(apAltName));
+//			orders.removeIf(o -> !StringUtils.equalsAnyIgnoreCase(o.getDescr().getPairName(), apAltName, tradedAssetPair.getPairName()));
+//			orders.removeIf(o -> o.getVol().doubleValue() != request.getVolume());
 
-			if (!orders.isEmpty()) {
-				List<String> txIds = StreamUtil.map(orders, OrderInfo::getOrderTxID);
+			List<OrderInfo> openOrders = modelTrading.getOpenOrders();
+			openOrders.removeIf(o -> o.getDescr().getOrderAction() != request.getOrderAction());
+			openOrders.removeIf(o -> !StringUtils.equalsAnyIgnoreCase(o.getDescr().getPairName(), apAltName, apName));
+
+			if (!openOrders.isEmpty()) {
+				List<String> txIds = StreamUtil.map(openOrders, OrderInfo::getOrderTxID);
 				AddOrderOut orderOut = new AddOrderOut();
 				orderOut.setTxIDs(txIds);
 				return orderOut;

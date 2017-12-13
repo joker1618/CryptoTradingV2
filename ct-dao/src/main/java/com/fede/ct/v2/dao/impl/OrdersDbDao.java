@@ -9,6 +9,7 @@ import com.fede.ct.v2.common.model.types.*;
 import com.fede.ct.v2.common.util.StrUtil;
 import com.fede.ct.v2.common.util.StreamUtil;
 import com.fede.ct.v2.dao.IOrdersDao;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +22,10 @@ public class OrdersDbDao extends AbstractDbDao implements IOrdersDao {
 
 	private static final SimpleLog logger = LogService.getLogger(OrdersDbDao.class);
 
-	private static final String REPLACE_ORDERS_PREFIX = "REPLACE INTO ORDERS (ORDER_TX_ID,USER_ID,REF_ID,USER_REF,STATUS,REASON,OPENTM,CLOSETM,STARTTM,EXPIRETM,VOL,VOL_EXEC,COST,FEE,AVG_PRICE,STOP_PRICE,LIMIT_PRICE,MISC,OFLAGS,TRADES_ID,DESCR_PAIR_NAME,DESCR_ORDER_ACTION,DESCR_ORDER_TYPE,DESCR_PRICE,DESCR_PRICE2,DESCR_LEVERAGE,DESCR_ORDER_DESCR,DESCR_CLOSE_DESCR) VALUES ";
+	private static final String REPLACE_ORDER = "REPLACE INTO ORDERS (ORDER_TX_ID,USER_ID,REF_ID,USER_REF,STATUS,REASON,OPENTM,CLOSETM,STARTTM,EXPIRETM,VOL,VOL_EXEC,COST,FEE,AVG_PRICE,STOP_PRICE,LIMIT_PRICE,MISC,OFLAGS,TRADES_ID,DESCR_PAIR_NAME,DESCR_ORDER_ACTION,DESCR_ORDER_TYPE,DESCR_PRICE,DESCR_PRICE2,DESCR_LEVERAGE,DESCR_ORDER_DESCR,DESCR_CLOSE_DESCR) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 	private static final String SELECT_ORDERS_BY_OPEN_TM = "SELECT ORDER_TX_ID,REF_ID,USER_REF,STATUS,REASON,OPENTM,CLOSETM,STARTTM,EXPIRETM,VOL,VOL_EXEC,COST,FEE,AVG_PRICE,STOP_PRICE,LIMIT_PRICE,MISC,OFLAGS,TRADES_ID,DESCR_PAIR_NAME,DESCR_ORDER_ACTION,DESCR_ORDER_TYPE,DESCR_PRICE,DESCR_PRICE2,DESCR_LEVERAGE,DESCR_ORDER_DESCR,DESCR_CLOSE_DESCR FROM ORDERS WHERE USER_ID = ? AND OPENTM >= ? AND OPENTM <= ?";
-	private static final String SELECT_ORDERS_STATUS = "SELECT ORDER_TX_ID, STATUS FROM ORDERS WHERE USER_ID = %d AND ORDER_TX_ID IN ";
+	private static final String SELECT_ORDERS_STATUS = "SELECT ORDER_TX_ID, STATUS FROM ORDERS WHERE USER_ID = ? AND ORDER_TX_ID IN ";
+	private static final String SELECT_OPEN_ORDERS = "SELECT ORDER_TX_ID FROM ORDERS WHERE USER_ID = ? AND STATUS = ? ";
 
 	
 	public OrdersDbDao(CryptoContext ctx) {
@@ -33,20 +35,20 @@ public class OrdersDbDao extends AbstractDbDao implements IOrdersDao {
 
 	@Override
 	public void updateOrders(List<OrderInfo> orders) {
-		List<Query> queries = super.createJdbcQueries(REPLACE_ORDERS_PREFIX, orders.size(), 28, orders, getOrderInfoParse());
+		List<Query> queries = StreamUtil.map(orders, this::createQueryIns);
 		super.performTransaction(queries);
 	}
 
 	@Override
 	public List<OrderInfo> getOrdersStatus(List<String> txIds) {
-		String queryPrefix = String.format(SELECT_ORDERS_STATUS, getUserCtx().getUserId());
-		List<Query> queries = super.createJdbcQueries(queryPrefix, 1, txIds.size(), txIds, o -> o);
-		List<OrderInfo> toRet = new ArrayList<>();
-		for(Query query : queries) {
-			List<InquiryResult> res = super.performInquiry(query);
-			toRet.addAll(StreamUtil.map(res, this::parseOrderInfo));
-		}
-		return toRet;
+		if(txIds.isEmpty())	return new ArrayList<>();
+
+		String inMarks = String.format("(?%s)", StringUtils.repeat(",?", txIds.size() - 1));
+		Query query = new Query(SELECT_ORDERS_STATUS + inMarks);
+		query.addParams(getUserCtx().getUserId());
+		txIds.forEach(query::addParams);
+		List<InquiryResult> res = super.performInquiry(query);
+		return StreamUtil.map(res, this::parseOrderInfo);
 	}
 
 	@Override
@@ -56,37 +58,44 @@ public class OrdersDbDao extends AbstractDbDao implements IOrdersDao {
 		return StreamUtil.map(results, this::parseOrderInfo);
 	}
 
-	private List<Function<OrderInfo, Object>> getOrderInfoParse() {
-		List<Function<OrderInfo, Object>> functions = new ArrayList<>();
-		functions.add(OrderInfo::getOrderTxID);
-		functions.add(oi -> getUserCtx().getUserId());
-		functions.add(OrderInfo::getRefId);
-		functions.add(OrderInfo::getUserRef);
-		functions.add(oi -> oi.getStatus().label());
-		functions.add(OrderInfo::getReason);
-		functions.add(OrderInfo::getOpenTm);
-		functions.add(OrderInfo::getCloseTm);
-		functions.add(OrderInfo::getStartTm);
-		functions.add(OrderInfo::getExpireTm);
-		functions.add(OrderInfo::getVol);
-		functions.add(OrderInfo::getVolExec);
-		functions.add(OrderInfo::getCost);
-		functions.add(OrderInfo::getFee);
-		functions.add(OrderInfo::getAvgPrice);
-		functions.add(OrderInfo::getStopPrice);
-		functions.add(OrderInfo::getLimitPrice);
-		functions.add(oi -> StreamUtil.join(oi.getMisc(), ",", OrderMisc::label));
-		functions.add(oi -> StreamUtil.join(oi.getOflags(), ",", OrderFlag::label));
-		functions.add(oi -> StreamUtil.join(oi.getTradesId(), ","));
-		functions.add(oi -> oi.getDescr().getPairName());
-		functions.add(oi -> oi.getDescr().getOrderAction().label());
-		functions.add(oi -> oi.getDescr().getOrderType().label());
-		functions.add(oi -> oi.getDescr().getPrimaryPrice());
-		functions.add(oi -> oi.getDescr().getSecondaryPrice());
-		functions.add(oi -> oi.getDescr().getLeverage());
-		functions.add(oi -> oi.getDescr().getOrderDescription());
-		functions.add(oi -> oi.getDescr().getCloseDescription());
-		return functions;
+	@Override
+	public List<OrderInfo> getOpenOrders() {
+		Query query = new Query(SELECT_OPEN_ORDERS, getUserCtx().getUserId(), OrderStatus.OPEN.label());
+		List<InquiryResult> results = super.performInquiry(query);
+		return StreamUtil.map(results, this::parseOrderInfo);
+	}
+
+	private Query createQueryIns(OrderInfo orderInfo) {
+		Query query = new Query(REPLACE_ORDER);
+		query.addParams(orderInfo.getOrderTxID());
+		query.addParams(getUserCtx().getUserId());
+		query.addParams(orderInfo.getRefId());
+		query.addParams(orderInfo.getUserRef());
+		query.addParams(orderInfo.getStatus().label());
+		query.addParams(orderInfo.getReason());
+		query.addParams(orderInfo.getOpenTm());
+		query.addParams(orderInfo.getCloseTm());
+		query.addParams(orderInfo.getStartTm());
+		query.addParams(orderInfo.getExpireTm());
+		query.addParams(orderInfo.getVol());
+		query.addParams(orderInfo.getVolExec());
+		query.addParams(orderInfo.getCost());
+		query.addParams(orderInfo.getFee());
+		query.addParams(orderInfo.getAvgPrice());
+		query.addParams(orderInfo.getStopPrice());
+		query.addParams(orderInfo.getLimitPrice());
+		query.addParams(StreamUtil.join(orderInfo.getMisc(), ",", OrderMisc::label));
+		query.addParams(StreamUtil.join(orderInfo.getOflags(), ",", OrderFlag::label));
+		query.addParams(StreamUtil.join(orderInfo.getTradesId(), ","));
+		query.addParams(orderInfo.getDescr().getPairName());
+		query.addParams(orderInfo.getDescr().getOrderAction().label());
+		query.addParams(orderInfo.getDescr().getOrderType().label());
+		query.addParams(orderInfo.getDescr().getPrimaryPrice());
+		query.addParams(orderInfo.getDescr().getSecondaryPrice());
+		query.addParams(orderInfo.getDescr().getLeverage());
+		query.addParams(orderInfo.getDescr().getOrderDescription());
+		query.addParams(orderInfo.getDescr().getCloseDescription());
+		return query;
 	}
 
 

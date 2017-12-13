@@ -28,4 +28,6 @@ public interface IModelTrading {
 	List<OrderInfo> getOrdersStatus(List<String> txIds);
 	List<OrderInfo> getOrders(Long minOpenTm, Long maxOpenTm);
 
+	List<OrderInfo> getOpenOrders();
+
 }
