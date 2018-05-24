@@ -193,24 +193,20 @@ public class ServiceTrading extends AbstractService implements ICryptoService {
 		Long maxOpenTm = System.currentTimeMillis();
 		modelTrading.turnOnDownloadOrders();
 		int counter = 0;
-		String apAltName = tradedAssetPair.getAltName();
 		String apName = tradedAssetPair.getPairName();
+		String apAltName = tradedAssetPair.getAltName();
 
 		while(modelTrading.isDownloadOrdersEnabled()) {
 			counter++;
 			Func.sleep(1000L * SECOND_SLEEP_RETRIEVE_ORDER);
-//			List<OrderInfo> orders = modelTrading.getOrders(minOpenTm, maxOpenTm);
-//			orders.removeIf(o -> o.getDescr().getOrderAction() != request.getOrderAction());
+			List<OrderInfo> orders = modelTrading.getOrders(minOpenTm, maxOpenTm);
+			orders.removeIf(o -> o.getDescr().getOrderAction() != request.getOrderAction());
 //			orders.removeIf(o -> !o.getDescr().getPairName().equalsIgnoreCase(apAltName));
-//			orders.removeIf(o -> !StringUtils.equalsAnyIgnoreCase(o.getDescr().getPairName(), apAltName, tradedAssetPair.getPairName()));
+			orders.removeIf(o -> !StringUtils.equalsAnyIgnoreCase(o.getDescr().getPairName(), apName, apAltName));
 //			orders.removeIf(o -> o.getVol().doubleValue() != request.getVolume());
 
-			List<OrderInfo> openOrders = modelTrading.getOpenOrders();
-			openOrders.removeIf(o -> o.getDescr().getOrderAction() != request.getOrderAction());
-			openOrders.removeIf(o -> !StringUtils.equalsAnyIgnoreCase(o.getDescr().getPairName(), apAltName, apName));
-
-			if (!openOrders.isEmpty()) {
-				List<String> txIds = StreamUtil.map(openOrders, OrderInfo::getOrderTxID);
+			if (!orders.isEmpty()) {
+				List<String> txIds = StreamUtil.map(orders, OrderInfo::getOrderTxID);
 				AddOrderOut orderOut = new AddOrderOut();
 				orderOut.setTxIDs(txIds);
 				return orderOut;
